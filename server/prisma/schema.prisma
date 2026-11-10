@@ -10,3 +10,64 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model User {
+  id             String   @id @default(uuid()) @db.Uuid
+  username       String   @unique @db.VarChar(30)
+  email          String   @unique @db.VarChar(255)
+  passwordHash   String
+  displayName    String?  @db.VarChar(60)
+  bio            String?  @db.VarChar(160)
+  avatarUrl      String?
+  lastSeenAt     DateTime? @db.Timestamptz(3)
+
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+
+  conversationsAsUserOne Conversation[] @relation("ConversationUserOne")
+  conversationsAsUserTwo Conversation[] @relation("ConversationUserTwo")
+  sentMessages           Message[]      @relation("MessageSender")
+
+  @@index([displayName])
+}
+
+model Conversation {
+  id         String   @id @default(uuid()) @db.Uuid
+  userOneId  String   @db.Uuid
+  userTwoId  String   @db.Uuid
+
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+  userOne User @relation("ConversationUserOne",fields: [userOneId],references: [id],onDelete: Cascade)
+  userTwo User @relation("ConversationUserTwo",fields: [userTwoId],references: [id],onDelete: Cascade)
+  messages Message[]
+  @@unique([userOneId, userTwoId])
+  @@index([userOneId])
+  @@index([userTwoId])
+}
+
+model Message {
+  id             String        @id @default(uuid()) @db.Uuid
+  conversationId String        @db.Uuid
+  senderId       String        @db.Uuid
+
+  content        String        @db.Text
+  status         MessageStatus @default(SENT)
+
+  deliveredAt    DateTime?     @db.Timestamptz(3)
+  readAt         DateTime?     @db.Timestamptz(3)
+
+  createdAt      DateTime      @default(now()) @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId],references: [id],onDelete: Cascade)
+
+  sender User @relation("MessageSender", fields: [senderId],references: [id],onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
