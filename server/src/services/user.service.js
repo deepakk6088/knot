@@ -1,3 +1,4 @@
+
 const prisma = require("../config/prisma");
 
 async function updateUserProfile(userId, profileData) {
@@ -18,6 +19,48 @@ async function updateUserProfile(userId, profileData) {
     });
 }
 
+async function searchUsers(query, currentUserId) {
+    return prisma.user.findMany({
+        where: {
+            AND: [
+                {
+                    id: {
+                        not: currentUserId
+                    }
+                },
+                {
+                    OR: [
+                        {
+                            username: {
+                                contains: query,
+                                mode: "insensitive"
+                            }
+                        },
+                        {
+                            displayName: {
+                                contains: query,
+                                mode: "insensitive"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        select: {
+            id: true,
+            username: true,
+            displayName: true,
+            bio: true,
+            avatarUrl: true
+        },
+        orderBy: {
+            username: "asc"
+        },
+        take: 20
+    });
+}
+
 module.exports = {
-    updateUserProfile
+    updateUserProfile,
+    searchUsers
 };
