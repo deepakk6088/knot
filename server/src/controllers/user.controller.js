@@ -1,3 +1,4 @@
+
 const userService = require("../services/user.service");
 
 async function updateProfile(req, res, next) {
@@ -17,6 +18,23 @@ async function updateProfile(req, res, next) {
     }
 }
 
+async function searchUsers(req, res, next) {
+    try {
+        const users = await userService.searchUsers(
+            req.searchQuery,
+            req.user.id
+        );
+
+        return res.status(200).json({
+            success: true,
+            users
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
-    updateProfile
+    updateProfile,
+    searchUsers
 };

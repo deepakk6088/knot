@@ -1,3 +1,4 @@
+
 function validateProfileUpdate(req, res, next) {
     const { displayName, bio, avatarUrl } = req.body;
 
@@ -88,6 +89,38 @@ function validateProfileUpdate(req, res, next) {
     next();
 }
 
+function validateUserSearch(req, res, next) {
+    const { q } = req.query;
+
+    if (typeof q !== "string") {
+        return res.status(400).json({
+            success: false,
+            message: "Search query is required."
+        });
+    }
+
+    const query = q.trim();
+
+    if (query.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Search query cannot be empty."
+        });
+    }
+
+    if (query.length > 60) {
+        return res.status(400).json({
+            success: false,
+            message: "Search query cannot exceed 60 characters."
+        });
+    }
+
+    req.searchQuery = query;
+
+    next();
+}
+
 module.exports = {
-    validateProfileUpdate
+    validateProfileUpdate,
+    validateUserSearch
 };

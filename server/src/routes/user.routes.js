@@ -1,9 +1,11 @@
+
 const express = require("express");
 
 const userController = require("../controllers/user.controller");
 
 const {
-    validateProfileUpdate
+    validateProfileUpdate,
+    validateUserSearch
 } = require("../validators/user.validator");
 
 const {
@@ -17,6 +19,13 @@ router.patch(
     authenticateToken,
     validateProfileUpdate,
     userController.updateProfile
+);
+
+router.get(
+    "/search",
+    authenticateToken,
+    validateUserSearch,
+    userController.searchUsers
 );
 
 module.exports = router;
