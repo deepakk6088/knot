@@ -1,3 +1,4 @@
+
 function validateRegistration(req, res, next) {
     const { username, email, password, displayName } = req.body || {};
 
@@ -60,6 +61,37 @@ function validateRegistration(req, res, next) {
     next();
 }
 
+function validateLogin(req, res, next) {
+    const { identifier, password } = req.body || {};
+
+    const errors = {};
+
+    if (typeof identifier !== "string" || !identifier.trim()) {
+        errors.identifier = "Email or username is required.";
+    } else if (identifier.trim().length > 255) {
+        errors.identifier = "Email or username is too long.";
+    }
+
+    if (typeof password !== "string" || !password) {
+        errors.password = "Password is required.";
+    } else if (Buffer.byteLength(password, "utf8") > 72) {
+        errors.password = "Invalid password.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Validation failed.",
+            errors
+        });
+    }
+
+    req.body.identifier = identifier.trim();
+
+    next();
+}
+
 module.exports = {
-    validateRegistration
+    validateRegistration,
+    validateLogin
 };
