@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
-
 const authRoutes = require("./routes/auth.routes");
 const conversationRoutes = require("./routes/conversationRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
@@ -25,9 +25,11 @@ app.get("/api/health", (req, res) => {
     message: "KNOT backend is running!"
   });
 });
-
 // Authentication routes (Member 1)
 app.use("/api/auth", authRoutes);
+
+// User routes
+app.use("/api/users", userRoutes);
 
 // Conversation & Message routes (Member 2)
 app.use("/api/conversations", conversationRoutes);
