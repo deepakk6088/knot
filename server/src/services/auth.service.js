@@ -1,6 +1,7 @@
 
 const prisma = require("../config/prisma");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 async function registerUser(userData) {
     const {
@@ -73,6 +74,86 @@ async function registerUser(userData) {
     }
 }
 
+async function loginUser(identifier, password) {
+    const normalizedIdentifier = identifier.toLowerCase();
+
+    const user = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email: normalizedIdentifier },
+                { username: identifier }
+            ]
+        },
+        select: {
+            id: true,
+            username: true,
+            email: true,
+            passwordHash: true,
+            displayName: true,
+            bio: true,
+            avatarUrl: true,
+            createdAt: true
+        }
+    });
+
+    // Use the same error for an unknown account and incorrect password.
+    if (!user) {
+        const error = new Error("Invalid email/username or password.");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const passwordMatches = await bcrypt.compare(
+        password,
+        user.passwordHash
+    );
+
+    if (!passwordMatches) {
+        const error = new Error("Invalid email/username or password.");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured.");
+    }
+
+    const token = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: process.env.JWT_EXPIRES_IN || "1d"
+        }
+    );
+
+    // Never return the password hash to the client.
+    const { passwordHash, ...safeUser } = user;
+
+    return {
+        user: safeUser,
+        token
+    };
+}
+
+async function getUserById(userId) {
+    return prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            id: true,
+            username: true,
+            email: true,
+            displayName: true,
+            bio: true,
+            avatarUrl: true,
+            createdAt: true
+        }
+    });
+}
+
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser,
+    getUserById
 };
