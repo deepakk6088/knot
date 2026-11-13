@@ -99,43 +99,43 @@ export default function ChatWindow({ conversation, currentUserId }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#f8fafc] relative overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-[#f5f3ee] relative overflow-hidden">
       {/* Chat Window Header */}
-      <div className="h-16 px-6 bg-white/90 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between shrink-0 shadow-xs z-10">
+      <div className="h-16 px-6 bg-[#fbf9f5] border-b border-[#e5dfd5] flex items-center justify-between shrink-0 shadow-2xs z-10">
         <div className="flex items-center gap-3.5">
           <div className="relative">
             {otherUser?.avatarUrl ? (
               <img
                 src={otherUser.avatarUrl}
                 alt={displayName}
-                className="w-10 h-10 rounded-2xl object-cover border border-slate-200 shadow-xs"
+                className="w-10 h-10 rounded-2xl object-cover border border-[#ded8cb] shadow-xs"
               />
             ) : (
               <div className={`w-10 h-10 rounded-2xl ${avatarStyle.bg} ${avatarStyle.text} border ${avatarStyle.border} flex items-center justify-center font-bold text-sm shadow-xs`}>
                 {getInitials(displayName)}
               </div>
             )}
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#4d7c0f] border-2 border-[#fbf9f5]" />
           </div>
 
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               {displayName}
             </h2>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               @{otherUser?.username || "user"}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1 text-slate-500">
-          <button className="p-2 hover:bg-slate-100 hover:text-indigo-600 rounded-xl transition-colors cursor-pointer" title="Audio Call">
+          <button className="p-2 hover:bg-[#ede8de] hover:text-[#1e3a8a] rounded-xl transition-colors cursor-pointer" title="Audio Call">
             <Phone size={17} />
           </button>
-          <button className="p-2 hover:bg-slate-100 hover:text-indigo-600 rounded-xl transition-colors cursor-pointer" title="Video Call">
+          <button className="p-2 hover:bg-[#ede8de] hover:text-[#1e3a8a] rounded-xl transition-colors cursor-pointer" title="Video Call">
             <Video size={17} />
           </button>
-          <button className="p-2 hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-colors cursor-pointer" title="More Options">
+          <button className="p-2 hover:bg-[#ede8de] hover:text-slate-800 rounded-xl transition-colors cursor-pointer" title="More Options">
             <MoreVertical size={17} />
           </button>
         </div>

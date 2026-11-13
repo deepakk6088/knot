@@ -20,19 +20,19 @@ export default function Sidebar({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="w-80 md:w-96 h-full bg-white border-r border-slate-200/80 flex flex-col shrink-0 shadow-xs">
+    <div className="w-80 md:w-96 h-full bg-[#fbf9f5] border-r border-[#e5dfd5] flex flex-col shrink-0 shadow-xs">
       {/* Top Header: Current User Identity & Actions */}
-      <div className="h-16 px-4 bg-white border-b border-slate-200/80 flex items-center justify-between shrink-0">
+      <div className="h-16 px-4 bg-[#fbf9f5] border-b border-[#e5dfd5] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-indigo-500/20">
+          <div className="w-10 h-10 rounded-2xl bg-[#1e3a8a] text-[#fbf9f5] flex items-center justify-center font-bold text-xs shadow-md shadow-[#1e3a8a]/20">
             {getInitials(currentUser?.displayName || currentUser?.username || "You")}
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 truncate">
               <span>{currentUser?.displayName || currentUser?.username || "KNOT User"}</span>
               {isDevMode && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold">
-                  PREVIEW
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#edf2ea] text-[#34452e] border border-[#c8d8c3] font-bold">
+                  OLIVE
                 </span>
               )}
             </h1>
@@ -46,7 +46,7 @@ export default function Sidebar({
           {onSwitchUser && isDevMode && (
             <button
               onClick={onSwitchUser}
-              className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/70 rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-slate-500 hover:text-[#1e3a8a] hover:bg-[#ede8de] rounded-xl transition-colors cursor-pointer"
               title="Switch Demo User"
             >
               <RefreshCw size={17} />
@@ -55,7 +55,7 @@ export default function Sidebar({
 
           <button
             onClick={onRefresh}
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-[#ede8de] rounded-xl transition-colors cursor-pointer"
             title="Refresh Conversations"
           >
             <MessageCircle size={17} />
@@ -63,7 +63,7 @@ export default function Sidebar({
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="p-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl transition-all shadow-md shadow-indigo-500/25 cursor-pointer ml-1"
+            className="p-2 bg-[#1e3a8a] hover:bg-[#1e40af] text-[#fbf9f5] rounded-xl transition-all shadow-md shadow-[#1e3a8a]/20 cursor-pointer ml-1"
             title="Start New Chat"
           >
             <Plus size={17} />
@@ -72,7 +72,7 @@ export default function Sidebar({
           {onLogout && (
             <button
               onClick={onLogout}
-              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer ml-0.5"
+              className="p-2 text-slate-400 hover:text-rose-700 hover:bg-[#f6e8ee] rounded-xl transition-colors cursor-pointer ml-0.5"
               title={isDevMode ? "Exit Preview Mode" : "Sign Out"}
             >
               <LogOut size={17} />
@@ -82,7 +82,7 @@ export default function Sidebar({
       </div>
 
       {/* Search Bar */}
-      <div className="p-3 border-b border-slate-200/80 bg-slate-50/60">
+      <div className="p-3 border-b border-[#e5dfd5] bg-[#f5f1e8]/70">
         <div className="relative flex items-center">
           <Search size={15} className="absolute left-3.5 text-slate-400 pointer-events-none" />
           <input
@@ -90,7 +90,7 @@ export default function Sidebar({
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-2xl pl-9 pr-8 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 shadow-xs transition-all"
+            className="w-full bg-[#fdfcf9] border border-[#e2ddd3] rounded-2xl pl-9 pr-8 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-2 focus:ring-[#bfd0f0] transition-all shadow-2xs"
           />
           {searchQuery && (
             <button
