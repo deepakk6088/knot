@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ConversationList from "./ConversationList";
 import NewChatModal from "./NewChatModal";
-import { Search, Plus, MessageSquare, X, RefreshCw } from "lucide-react";
+import { Search, Plus, MessageSquare, X, RefreshCw, LogOut } from "lucide-react";
 import { getInitials } from "../../utils/formatters";
 
 export default function Sidebar({
@@ -12,7 +12,9 @@ export default function Sidebar({
   currentUser,
   onRefresh,
   onConversationCreated,
-  onSwitchUser
+  onSwitchUser,
+  onLogout,
+  isDevMode
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +30,11 @@ export default function Sidebar({
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-slate-100 flex items-center gap-1.5 truncate">
               <span>{currentUser?.displayName || currentUser?.username || "KNOT User"}</span>
+              {isDevMode && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">
+                  DEV
+                </span>
+              )}
             </h1>
             <p className="text-[11px] text-slate-400 font-mono truncate" title={currentUser?.id}>
               ID: {currentUser?.id ? currentUser.id.slice(0, 8) + "..." : "Guest"}
@@ -36,11 +43,11 @@ export default function Sidebar({
         </div>
 
         <div className="flex items-center gap-1">
-          {onSwitchUser && (
+          {onSwitchUser && isDevMode && (
             <button
               onClick={onSwitchUser}
               className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-              title="Switch Test User"
+              title="Switch Demo User"
             >
               <RefreshCw size={17} />
             </button>
@@ -61,6 +68,16 @@ export default function Sidebar({
           >
             <Plus size={17} />
           </button>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer ml-0.5"
+              title={isDevMode ? "Exit Dev Mode" : "Sign Out"}
+            >
+              <LogOut size={17} />
+            </button>
+          )}
         </div>
       </div>
 
