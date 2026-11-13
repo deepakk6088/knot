@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
     Eye,
@@ -7,6 +8,7 @@ import {
     UserRound,
     LoaderCircle
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { registerUser } from "../../services/auth.service.js";
 
@@ -370,9 +372,12 @@ function Signup() {
 
                         <p className="text-center text-sm text-gray-400 mt-8">
                             Already have an account?{" "}
-                            <span className="text-indigo-400 font-semibold">
+                            <Link
+                                to="/login"
+                                className="text-indigo-400 font-semibold hover:text-indigo-300 transition"
+                            >
                                 Sign in
-                            </span>
+                            </Link>
                         </p>
 
                     </div>
@@ -409,4 +414,3 @@ function Signup() {
 }
 
 export default Signup;
-
