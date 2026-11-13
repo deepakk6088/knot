@@ -33,7 +33,7 @@ export default function MessageInput({ onSendMessage, disabled }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-3.5 bg-[#101117] border-t border-white/10 flex items-center gap-2.5"
+      className="p-3.5 bg-white border-t border-slate-200/80 flex items-center gap-2.5 shadow-xs"
     >
       <input
         ref={inputRef}
@@ -43,13 +43,13 @@ export default function MessageInput({ onSendMessage, disabled }) {
         disabled={disabled}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="flex-1 bg-[#181a24] border border-white/10 text-white placeholder-gray-500 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-all disabled:opacity-50"
+        className="flex-1 bg-slate-100/80 hover:bg-slate-100/95 focus:bg-white border border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 text-slate-900 placeholder-slate-400 text-sm rounded-2xl px-4 py-3 transition-all disabled:opacity-50 outline-none"
       />
 
       <button
         type="submit"
         disabled={disabled || !text.trim()}
-        className="p-3 bg-indigo-500 hover:bg-indigo-600 disabled:bg-[#181a24] disabled:text-gray-600 text-white rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed shadow-md shadow-indigo-500/20 disabled:shadow-none flex items-center justify-center shrink-0"
+        className="p-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed shadow-md shadow-indigo-500/25 disabled:shadow-none flex items-center justify-center shrink-0"
         title="Send Message"
       >
         <SendHorizonal size={18} />

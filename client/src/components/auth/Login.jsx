@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
     Eye,
@@ -69,41 +68,41 @@ function Login() {
     }
 
     return (
-        <div className="min-h-screen bg-[#08090d] text-white flex items-center justify-center p-4">
-            <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-white/10 bg-[#101117] shadow-2xl">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50/70 via-slate-50 to-violet-50/50 text-slate-900 flex items-center justify-center p-4 sm:p-6">
+            <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_20px_60px_-15px_rgba(79,70,229,0.12)]">
 
                 <div className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
 
-                    <div className="flex items-center gap-3 mb-12">
-                        <div className="w-11 h-11 rounded-xl bg-indigo-500 flex items-center justify-center">
-                            <MessageCircle size={23} />
+                    <div className="flex items-center gap-3 mb-10">
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                            <MessageCircle size={22} />
                         </div>
 
-                        <span className="text-2xl font-bold tracking-wide">
+                        <span className="text-2xl font-extrabold tracking-tight text-slate-900">
                             KNOT
                         </span>
                     </div>
 
                     <div className="max-w-md w-full mx-auto">
 
-                        <p className="text-sm text-indigo-400 font-semibold mb-3">
-                            WELCOME BACK
+                        <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2">
+                            Welcome Back
                         </p>
 
-                        <h1 className="text-4xl font-bold mb-3">
+                        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
                             Sign in to KNOT
                         </h1>
 
-                        <p className="text-gray-400 mb-9">
+                        <p className="text-slate-500 mb-8 text-sm">
                             Connect with people and continue your conversations.
                         </p>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-5">
 
                             <div>
                                 <label
                                     htmlFor="identifier"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2"
                                 >
                                     Email or Username
                                 </label>
@@ -118,14 +117,14 @@ function Login() {
                                     placeholder="Enter your email or username"
                                     autoComplete="username"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3.5 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                    className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3.5 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
                                 />
                             </div>
 
                             <div>
                                 <label
                                     htmlFor="password"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2"
                                 >
                                     Password
                                 </label>
@@ -141,7 +140,7 @@ function Login() {
                                         placeholder="Enter your password"
                                         autoComplete="current-password"
                                         disabled={isSubmitting}
-                                        className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3.5 pr-12 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                        className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3.5 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
                                     />
 
                                     <button
@@ -155,11 +154,11 @@ function Login() {
                                                 ? "Hide password"
                                                 : "Show password"
                                         }
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white disabled:opacity-50"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 disabled:opacity-50 cursor-pointer"
                                     >
                                         {showPassword
-                                            ? <EyeOff size={19} />
-                                            : <Eye size={19} />
+                                            ? <EyeOff size={18} />
+                                            : <Eye size={18} />
                                         }
                                     </button>
                                 </div>
@@ -168,7 +167,7 @@ function Login() {
                             {validationError && (
                                 <p
                                     role="alert"
-                                    className="text-sm text-red-400"
+                                    className="text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl"
                                 >
                                     {validationError}
                                 </p>
@@ -177,7 +176,7 @@ function Login() {
                             {serverError && (
                                 <p
                                     role="alert"
-                                    className="text-sm text-red-400"
+                                    className="text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl"
                                 >
                                     {serverError}
                                 </p>
@@ -186,12 +185,12 @@ function Login() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 py-3.5 font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white py-3.5 font-semibold transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer text-sm"
                             >
                                 {isSubmitting ? (
                                     <>
                                         <LoaderCircle
-                                            size={19}
+                                            size={18}
                                             className="animate-spin"
                                         />
                                         Signing in...
@@ -199,18 +198,18 @@ function Login() {
                                 ) : (
                                     <>
                                         Sign in
-                                        <ArrowRight size={19} />
+                                        <ArrowRight size={18} />
                                     </>
                                 )}
                             </button>
 
                         </form>
 
-                        <p className="text-center text-sm text-gray-400 mt-8">
+                        <p className="text-center text-sm text-slate-500 mt-8">
                             Don't have an account?{" "}
                             <Link
                                 to="/signup"
-                                className="text-indigo-400 font-semibold hover:text-indigo-300 transition"
+                                className="text-indigo-600 font-bold hover:text-indigo-700 transition"
                             >
                                 Sign up
                             </Link>
@@ -226,19 +225,21 @@ function Login() {
                         className="absolute inset-0 w-full h-full object-cover"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent" />
 
-                    <div className="absolute bottom-12 left-12 right-12">
-                        <LockKeyhole
-                            size={30}
-                            className="text-indigo-300 mb-5"
-                        />
+                    <div className="absolute bottom-12 left-12 right-12 text-white">
+                        <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-5 border border-white/30">
+                            <LockKeyhole
+                                size={22}
+                                className="text-white"
+                            />
+                        </div>
 
-                        <h2 className="text-3xl font-bold mb-3">
+                        <h2 className="text-3xl font-extrabold mb-3 leading-tight tracking-tight">
                             Conversations that connect.
                         </h2>
 
-                        <p className="text-gray-200 leading-relaxed">
+                        <p className="text-slate-200 leading-relaxed text-sm">
                             A space to stay connected with the people who matter.
                         </p>
                     </div>

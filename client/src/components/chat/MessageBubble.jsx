@@ -14,8 +14,8 @@ export default function MessageBubble({ message, isOwnMessage }) {
       <div
         className={`max-w-[75%] sm:max-w-[65%] md:max-w-[60%] px-4 py-2.5 rounded-2xl text-sm relative break-words ${
           isOwnMessage
-            ? "bg-indigo-600 text-white rounded-br-xs shadow-md shadow-indigo-600/15"
-            : "bg-[#181a24] text-gray-100 rounded-bl-xs border border-white/10 shadow-sm"
+            ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-xs shadow-md shadow-indigo-500/20"
+            : "bg-white text-slate-800 rounded-bl-xs border border-slate-200/80 shadow-xs"
         }`}
       >
         {/* Message Content */}
@@ -23,8 +23,8 @@ export default function MessageBubble({ message, isOwnMessage }) {
 
         {/* Timestamp & Status Metadata */}
         <div
-          className={`flex items-center justify-end gap-1.5 mt-1 text-[11px] ${
-            isOwnMessage ? "text-indigo-200/80" : "text-gray-400"
+          className={`flex items-center justify-end gap-1.5 mt-1 text-[11px] font-medium ${
+            isOwnMessage ? "text-indigo-100/90" : "text-slate-400"
           }`}
         >
           <span>{formatMessageTime(createdAt)}</span>
@@ -32,11 +32,11 @@ export default function MessageBubble({ message, isOwnMessage }) {
           {isOwnMessage && (
             <span className="inline-flex items-center ml-0.5">
               {status === "READ" ? (
-                <CheckCheck size={14} className="text-indigo-200 stroke-[2.5]" title="Read" />
+                <CheckCheck size={14} className="text-white stroke-[2.5]" title="Read" />
               ) : status === "DELIVERED" ? (
-                <CheckCheck size={14} className="text-indigo-300/80 stroke-[2]" title="Delivered" />
+                <CheckCheck size={14} className="text-indigo-200 stroke-[2]" title="Delivered" />
               ) : (
-                <Check size={14} className="text-indigo-300/60 stroke-[1.8]" title="Sent" />
+                <Check size={14} className="text-indigo-200/80 stroke-[1.8]" title="Sent" />
               )}
             </span>
           )}
