@@ -7,10 +7,10 @@ const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
-// CORS configuration
+// CORS configuration (allow both localhost and 127.0.0.1 frontend origins)
 app.use(
   cors({
-    origin: ["http://127.0.0.1:5173", "http://localhost:5173"],
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
     credentials: true
   })
 );
@@ -25,10 +25,11 @@ app.get("/api/health", (req, res) => {
     message: "KNOT backend is running!"
   });
 });
+
 // Authentication routes (Member 1)
 app.use("/api/auth", authRoutes);
 
-// User routes
+// User routes (Member 1)
 app.use("/api/users", userRoutes);
 
 // Conversation & Message routes (Member 2)
