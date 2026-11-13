@@ -1,6 +1,6 @@
 import React from "react";
 import ConversationItem from "./ConversationItem";
-import { MessageSquareDashed, Loader2 } from "lucide-react";
+import { MessageCircle, Loader2 } from "lucide-react";
 
 export default function ConversationList({
   conversations = [],
@@ -11,9 +11,9 @@ export default function ConversationList({
 }) {
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 p-6">
-        <Loader2 className="animate-spin text-emerald-500" size={24} />
-        <span className="text-xs">Loading conversations...</span>
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2.5 p-6">
+        <Loader2 className="animate-spin text-[#1e3a8a]" size={26} />
+        <span className="text-xs font-semibold text-slate-600">Loading conversations...</span>
       </div>
     );
   }
@@ -29,11 +29,13 @@ export default function ConversationList({
   if (filtered.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2 p-6 text-center">
-        <MessageSquareDashed size={32} className="text-slate-600 mb-1" />
-        <p className="text-sm font-medium text-slate-300">
+        <div className="w-12 h-12 rounded-2xl bg-[#edf2ea] border border-[#c8d8c3] flex items-center justify-center text-[#34452e] mb-2 shadow-xs">
+          <MessageCircle size={22} />
+        </div>
+        <p className="text-sm font-bold text-slate-900">
           {searchQuery ? "No matching conversations" : "No conversations yet"}
         </p>
-        <p className="text-xs text-slate-400 max-w-[200px]">
+        <p className="text-xs text-slate-500 max-w-[200px] leading-relaxed">
           {searchQuery
             ? "Try searching for another contact name or username."
             : "Click the + icon above to start your first chat."}
@@ -43,7 +45,7 @@ export default function ConversationList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto divide-y divide-slate-800/40">
+    <div className="flex-1 overflow-y-auto divide-y divide-[#ede8de]">
       {filtered.map((conv) => (
         <ConversationItem
           key={conv.id}

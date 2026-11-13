@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import MessageBubble from "./MessageBubble";
 import { formatDateDivider } from "../../utils/formatters";
-import { Loader2, ArrowUpCircle, MessageSquareOff } from "lucide-react";
+import { Loader2, ArrowUpCircle, MessageSquare } from "lucide-react";
 
 export default function MessageList({
   messages = [],
@@ -40,9 +40,9 @@ export default function MessageList({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-3">
-        <Loader2 className="animate-spin text-emerald-500" size={32} />
-        <span className="text-sm">Loading chat history...</span>
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-3">
+        <Loader2 className="animate-spin text-[#1e3a8a]" size={30} />
+        <span className="text-xs font-semibold text-slate-600">Loading chat history...</span>
       </div>
     );
   }
@@ -50,41 +50,40 @@ export default function MessageList({
   if (messages.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2 p-6 text-center">
-        <div className="w-14 h-14 rounded-full bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 mb-2">
-          <MessageSquareOff size={26} />
+        <div className="w-14 h-14 rounded-2xl bg-[#edf2ea] border border-[#c8d8c3] flex items-center justify-center text-[#34452e] mb-2 shadow-xs">
+          <MessageSquare size={24} />
         </div>
-        <p className="text-base font-medium text-slate-300">No messages yet</p>
-        <p className="text-sm max-w-xs text-slate-400">
-          Send a greeting below to start your conversation!
+        <p className="text-sm font-bold text-slate-900">No messages yet</p>
+        <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+          Send a message below to start your conversation.
         </p>
       </div>
     );
   }
 
-  // Group messages by date
   let lastDateStr = null;
 
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto px-4 py-3 flex flex-col space-y-1 select-none"
+      className="flex-1 overflow-y-auto px-6 py-4 flex flex-col space-y-1 select-none"
     >
-      {/* Load Previous Messages Button / Indicator */}
+      {/* Load Previous Messages Button */}
       {hasMore && (
         <div className="flex justify-center my-3">
           <button
             onClick={handleLoadMoreClick}
             disabled={isLoadingMore}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-[#fbf9f5] hover:bg-[#ede8de] border border-[#ded8cb] text-slate-700 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
           >
             {isLoadingMore ? (
               <>
-                <Loader2 size={13} className="animate-spin text-emerald-400" />
+                <Loader2 size={13} className="animate-spin text-[#1e3a8a]" />
                 <span>Loading older messages...</span>
               </>
             ) : (
               <>
-                <ArrowUpCircle size={14} className="text-emerald-400" />
+                <ArrowUpCircle size={14} className="text-[#1e3a8a]" />
                 <span>Load previous messages</span>
               </>
             )}
@@ -103,8 +102,8 @@ export default function MessageList({
         return (
           <React.Fragment key={message.id}>
             {showDivider && (
-              <div className="flex items-center justify-center my-3">
-                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-800/90 text-slate-400 border border-slate-700/50 uppercase tracking-wider">
+              <div className="flex items-center justify-center my-4">
+                <span className="px-3.5 py-1 rounded-full text-[11px] font-semibold bg-[#fbf9f5] text-slate-600 border border-[#ded8cb] uppercase tracking-wider shadow-2xs">
                   {formatDateDivider(message.createdAt)}
                 </span>
               </div>
