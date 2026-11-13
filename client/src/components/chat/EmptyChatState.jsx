@@ -1,39 +1,33 @@
 import React from "react";
-import { MessageSquare, ShieldCheck, Zap, Database } from "lucide-react";
+import { MessageCircle, LockKeyhole, Sparkles } from "lucide-react";
 
 export default function EmptyChatState() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-slate-950 p-8 text-center select-none border-l border-slate-800/40">
+    <div className="flex-1 flex flex-col items-center justify-center bg-[#08090d] p-8 text-center select-none">
       <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-xl">
-          <MessageSquare size={38} className="stroke-[1.7]" />
+        {/* KNOT Brand Icon matching Login.jsx */}
+        <div className="w-16 h-16 rounded-2xl bg-indigo-500 flex items-center justify-center text-white shadow-2xl shadow-indigo-500/25">
+          <MessageCircle size={32} />
         </div>
-        <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950">
-          <Zap size={14} className="fill-slate-950" />
-        </span>
       </div>
 
-      <h1 className="text-2xl font-bold text-slate-100 mb-2">
-        KNOT Desktop Messenger
+      <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">
+        Conversations that connect.
       </h1>
 
-      <p className="text-slate-400 text-sm max-w-sm mb-8 leading-relaxed">
-        Select a conversation from the sidebar or click the plus button to start messaging contacts securely.
+      <p className="text-gray-400 text-sm max-w-sm mb-8 leading-relaxed">
+        Select a conversation from the sidebar or click the plus button to message your contacts.
       </p>
 
-      {/* Feature Badges */}
-      <div className="flex flex-wrap items-center justify-center gap-3 max-w-md">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs">
-          <Database size={14} className="text-emerald-400" />
-          <span>PostgreSQL Persistent</span>
+      {/* Subtle KNOT Brand Badges */}
+      <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-md">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#101117] border border-white/10 text-gray-300 text-xs">
+          <LockKeyhole size={13} className="text-indigo-400" />
+          <span>Private 1-on-1 Chats</span>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs">
-          <ShieldCheck size={14} className="text-sky-400" />
-          <span>Participant Validated</span>
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 text-xs">
-          <Zap size={14} className="text-amber-400" />
-          <span>Zero-Duplicate Architecture</span>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#101117] border border-white/10 text-gray-300 text-xs">
+          <Sparkles size={13} className="text-indigo-400" />
+          <span>Real-time Messaging</span>
         </div>
       </div>
     </div>
