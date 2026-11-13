@@ -37,62 +37,65 @@ export default function NewChatModal({ isOpen, onClose, onConversationCreated })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 backdrop-blur-xs p-4">
+      <div className="bg-[#fbf9f5] border border-[#ded8cb] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+        <div className="px-6 py-5 border-b border-[#e5dfd5] bg-[#f5f1e8] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#e8edf7] text-[#1e3a8a] border border-[#bfd0f0] flex items-center justify-center shadow-xs">
               <UserPlus size={18} />
             </div>
-            <h3 className="font-semibold text-slate-100 text-sm">Start New Conversation</h3>
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Start New Conversation</h3>
+              <p className="text-[11px] text-slate-500 font-medium">Connect with a user on KNOT</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1 rounded-xl hover:bg-[#ede8de]"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
               Contact User ID (UUID)
             </label>
             <input
               type="text"
-              placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
+              placeholder="e.g. a0000000-0000-0000-0000-000000000001"
               value={targetUserId}
               onChange={(e) => setTargetUserId(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+              className="w-full bg-[#ffffff] border border-[#ded8cb] rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] transition-all"
               autoFocus
             />
-            <p className="text-[11px] text-slate-400 mt-1">
-              Enter the UUID of the person you want to message.
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Enter the unique ID of the person you'd like to chat with.
             </p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
               <AlertCircle size={15} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-[#ede8de] rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !targetUserId.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold bg-[#1e3a8a] hover:bg-[#1e40af] text-[#fbf9f5] rounded-xl shadow-md shadow-[#1e3a8a]/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

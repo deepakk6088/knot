@@ -7,15 +7,15 @@ export default function MessageBubble({ message, isOwnMessage }) {
 
   return (
     <div
-      className={`flex w-full mb-2 ${
+      className={`flex w-full mb-2.5 ${
         isOwnMessage ? "justify-end" : "justify-start"
       }`}
     >
       <div
-        className={`max-w-[75%] sm:max-w-[65%] md:max-w-[60%] px-3.5 py-2 rounded-2xl shadow-sm text-sm relative break-words ${
+        className={`max-w-[75%] sm:max-w-[65%] md:max-w-[60%] px-4 py-2.5 rounded-2xl text-sm relative break-words ${
           isOwnMessage
-            ? "bg-emerald-600 text-white rounded-br-xs"
-            : "bg-slate-800 text-slate-100 rounded-bl-xs border border-slate-700/60"
+            ? "bg-[#1e40af] text-[#fbf9f5] rounded-br-xs shadow-md shadow-[#1e40af]/20"
+            : "bg-[#ffffff] text-slate-800 rounded-bl-xs border border-[#ded8cb] shadow-2xs"
         }`}
       >
         {/* Message Content */}
@@ -23,8 +23,8 @@ export default function MessageBubble({ message, isOwnMessage }) {
 
         {/* Timestamp & Status Metadata */}
         <div
-          className={`flex items-center justify-end gap-1 mt-1 text-[11px] ${
-            isOwnMessage ? "text-emerald-100/80" : "text-slate-400"
+          className={`flex items-center justify-end gap-1.5 mt-1 text-[11px] font-medium ${
+            isOwnMessage ? "text-[#c7d7f7]" : "text-slate-400"
           }`}
         >
           <span>{formatMessageTime(createdAt)}</span>
@@ -32,11 +32,11 @@ export default function MessageBubble({ message, isOwnMessage }) {
           {isOwnMessage && (
             <span className="inline-flex items-center ml-0.5">
               {status === "READ" ? (
-                <CheckCheck size={14} className="text-sky-300 stroke-[2.5]" title="Read" />
+                <CheckCheck size={14} className="text-[#fbf9f5] stroke-[2.5]" title="Read" />
               ) : status === "DELIVERED" ? (
-                <CheckCheck size={14} className="text-emerald-200 stroke-[2.2]" title="Delivered" />
+                <CheckCheck size={14} className="text-[#bfd0f0] stroke-[2]" title="Delivered" />
               ) : (
-                <Check size={14} className="text-emerald-200/70 stroke-[2]" title="Sent" />
+                <Check size={14} className="text-[#bfd0f0]/80 stroke-[1.8]" title="Sent" />
               )}
             </span>
           )}

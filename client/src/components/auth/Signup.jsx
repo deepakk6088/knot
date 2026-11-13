@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
     Eye,
@@ -13,14 +12,14 @@ import { Link } from "react-router-dom";
 import { registerUser } from "../../services/auth.service.js";
 
 function Signup() {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const [displayName, setDisplayName] = useState("");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [validationError, setValidationError] = useState("");
     const [serverError, setServerError] = useState("");
@@ -139,44 +138,44 @@ function Signup() {
     }
 
     return (
-        <div className="min-h-screen bg-[#08090d] text-white flex items-center justify-center p-4">
-            <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-white/10 bg-[#101117] shadow-2xl">
+        <div className="min-h-screen bg-[#f5f3ee] text-slate-900 flex items-center justify-center p-4 sm:p-6">
+            <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-[#ded8cb] bg-[#fbf9f5] shadow-[0_20px_50px_rgba(30,58,138,0.07)]">
 
                 <div className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
 
-                    <div className="flex items-center gap-3 mb-10">
-                        <div className="w-11 h-11 rounded-xl bg-indigo-500 flex items-center justify-center">
-                            <MessageCircle size={23} />
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="w-11 h-11 rounded-2xl bg-[#1e3a8a] text-[#fbf9f5] flex items-center justify-center shadow-md shadow-[#1e3a8a]/20">
+                            <MessageCircle size={22} />
                         </div>
 
-                        <span className="text-2xl font-bold tracking-wide">
+                        <span className="text-2xl font-extrabold tracking-tight text-slate-900">
                             KNOT
                         </span>
                     </div>
 
                     <div className="max-w-md w-full mx-auto">
 
-                        <p className="text-sm text-indigo-400 font-semibold mb-3">
-                            GET STARTED
+                        <p className="text-xs text-[#34452e] font-bold uppercase tracking-wider mb-2">
+                            Get Started
                         </p>
 
-                        <h1 className="text-4xl font-bold mb-3">
+                        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
                             Create your account
                         </h1>
 
-                        <p className="text-gray-400 mb-8">
+                        <p className="text-slate-500 mb-6 text-sm">
                             Join KNOT and start connecting with people.
                         </p>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-4">
 
                             <div>
                                 <label
                                     htmlFor="displayName"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
                                     Display Name
-                                    <span className="text-gray-500"> (Optional)</span>
+                                    <span className="text-slate-400 font-normal"> (Optional)</span>
                                 </label>
 
                                 <input
@@ -189,14 +188,14 @@ function Signup() {
                                     placeholder="Enter your display name"
                                     autoComplete="name"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                    className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                 />
                             </div>
 
                             <div>
                                 <label
                                     htmlFor="username"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
                                     Username
                                 </label>
@@ -211,14 +210,14 @@ function Signup() {
                                     placeholder="Choose a username"
                                     autoComplete="username"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                    className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                 />
                             </div>
 
                             <div>
                                 <label
                                     htmlFor="email"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
                                     Email
                                 </label>
@@ -233,14 +232,14 @@ function Signup() {
                                     placeholder="Enter your email"
                                     autoComplete="email"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                    className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                 />
                             </div>
 
                             <div>
                                 <label
                                     htmlFor="password"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
                                     Password
                                 </label>
@@ -256,7 +255,7 @@ function Signup() {
                                         placeholder="Create a password"
                                         autoComplete="new-password"
                                         disabled={isSubmitting}
-                                        className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3 pr-12 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                        className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                     />
 
                                     <button
@@ -270,11 +269,11 @@ function Signup() {
                                                 ? "Hide password"
                                                 : "Show password"
                                         }
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
                                     >
                                         {showPassword
-                                            ? <EyeOff size={19} />
-                                            : <Eye size={19} />
+                                            ? <EyeOff size={18} />
+                                            : <Eye size={18} />
                                         }
                                     </button>
                                 </div>
@@ -283,7 +282,7 @@ function Signup() {
                             <div>
                                 <label
                                     htmlFor="confirmPassword"
-                                    className="block text-sm font-medium text-gray-300 mb-2"
+                                    className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
                                     Confirm Password
                                 </label>
@@ -303,7 +302,7 @@ function Signup() {
                                         placeholder="Confirm your password"
                                         autoComplete="new-password"
                                         disabled={isSubmitting}
-                                        className="w-full rounded-xl bg-[#1b1d26] border border-white/10 px-4 py-3 pr-12 text-white outline-none transition focus:border-indigo-500 disabled:opacity-60"
+                                        className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                     />
 
                                     <button
@@ -319,30 +318,30 @@ function Signup() {
                                                 ? "Hide confirm password"
                                                 : "Show confirm password"
                                         }
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
                                     >
                                         {showConfirmPassword
-                                            ? <EyeOff size={19} />
-                                            : <Eye size={19} />
+                                            ? <EyeOff size={18} />
+                                            : <Eye size={18} />
                                         }
                                     </button>
                                 </div>
                             </div>
 
                             {validationError && (
-                                <p role="alert" className="text-sm text-red-400">
+                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
                                     {validationError}
                                 </p>
                             )}
 
                             {serverError && (
-                                <p role="alert" className="text-sm text-red-400">
+                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
                                     {serverError}
                                 </p>
                             )}
 
                             {successMessage && (
-                                <p role="status" className="text-sm text-green-400">
+                                <p role="status" className="text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl">
                                     {successMessage}
                                 </p>
                             )}
@@ -350,12 +349,12 @@ function Signup() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 py-3.5 font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#1e3a8a] hover:bg-[#1e40af] text-[#fbf9f5] py-3.5 font-semibold transition-all shadow-md shadow-[#1e3a8a]/20 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer text-sm"
                             >
                                 {isSubmitting ? (
                                     <>
                                         <LoaderCircle
-                                            size={19}
+                                            size={18}
                                             className="animate-spin"
                                         />
                                         Creating account...
@@ -363,18 +362,18 @@ function Signup() {
                                 ) : (
                                     <>
                                         Create account
-                                        <ArrowRight size={19} />
+                                        <ArrowRight size={18} />
                                     </>
                                 )}
                             </button>
 
                         </form>
 
-                        <p className="text-center text-sm text-gray-400 mt-8">
+                        <p className="text-center text-sm text-slate-500 mt-6">
                             Already have an account?{" "}
                             <Link
                                 to="/login"
-                                className="text-indigo-400 font-semibold hover:text-indigo-300 transition"
+                                className="text-[#1e3a8a] font-bold hover:text-[#172554] transition"
                             >
                                 Sign in
                             </Link>
@@ -390,19 +389,21 @@ function Signup() {
                         className="absolute inset-0 w-full h-full object-cover"
                     />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#08090d] via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent" />
 
-                    <div className="absolute bottom-12 left-12 right-12">
-                        <UserRound
-                            size={30}
-                            className="text-indigo-300 mb-5"
-                        />
+                    <div className="absolute bottom-12 left-12 right-12 text-white">
+                        <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-5 border border-white/30">
+                            <UserRound
+                                size={22}
+                                className="text-white"
+                            />
+                        </div>
 
-                        <h2 className="text-3xl font-bold mb-3">
+                        <h2 className="text-3xl font-extrabold mb-3 leading-tight tracking-tight">
                             Every connection starts somewhere.
                         </h2>
 
-                        <p className="text-gray-200 leading-relaxed">
+                        <p className="text-slate-200 leading-relaxed text-sm">
                             Create your account and make room for meaningful conversations.
                         </p>
                     </div>
