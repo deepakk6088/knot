@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
@@ -9,15 +10,17 @@ const api = axios.create({
   }
 });
 
-// Request interceptor to attach auth token or dev user ID
+// Attach authentication token or development user ID.
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("knot_token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     const currentUserId = localStorage.getItem("knot_user_id");
+
     if (currentUserId && !config.headers.Authorization) {
       config.headers["x-user-id"] = currentUserId;
     }
@@ -26,6 +29,17 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// User APIs (Member 1)
+export const userApi = {
+  searchUsers: async (query) => {
+    const res = await api.get("/users/search", {
+      params: { q: query }
+    });
+
+    return res.data;
+  }
+};
 
 // Conversation APIs (Member 2)
 export const conversationApi = {
@@ -47,27 +61,45 @@ export const conversationApi = {
 
 // Message APIs (Member 2)
 export const messageApi = {
-  getMessages: async (conversationId, { limit = 30, cursor = null, before = null } = {}) => {
+  getMessages: async (
+    conversationId,
+    { limit = 30, cursor = null, before = null } = {}
+  ) => {
     const params = { limit };
+
     if (cursor) params.cursor = cursor;
     if (before) params.before = before;
 
-    const res = await api.get(`/messages/conversation/${conversationId}`, { params });
+    const res = await api.get(
+      `/messages/conversation/${conversationId}`,
+      { params }
+    );
+
     return res.data;
   },
 
   sendMessage: async (conversationId, content) => {
-    const res = await api.post("/messages", { conversationId, content });
+    const res = await api.post("/messages", {
+      conversationId,
+      content
+    });
+
     return res.data;
   },
 
   updateMessageStatus: async (messageId, status) => {
-    const res = await api.patch(`/messages/${messageId}/status`, { status });
+    const res = await api.patch(`/messages/${messageId}/status`, {
+      status
+    });
+
     return res.data;
   },
 
   markConversationRead: async (conversationId) => {
-    const res = await api.post(`/messages/conversation/${conversationId}/read`);
+    const res = await api.post(
+      `/messages/conversation/${conversationId}/read`
+    );
+
     return res.data;
   }
 };
