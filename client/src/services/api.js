@@ -10,22 +10,24 @@ const api = axios.create({
 });
 
 // Request interceptor to attach auth token or dev user ID
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("knot_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("knot_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-  // Dev user ID fallback (allows switching users for testing Member 2 features)
-  const currentUserId = localStorage.getItem("knot_user_id");
-  if (currentUserId && !config.headers.Authorization) {
-    config.headers["x-user-id"] = currentUserId;
-  }
+    const currentUserId = localStorage.getItem("knot_user_id");
+    if (currentUserId && !config.headers.Authorization) {
+      config.headers["x-user-id"] = currentUserId;
+    }
 
-  return config;
-});
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Conversation APIs
+// Conversation APIs (Member 2)
 export const conversationApi = {
   getConversations: async () => {
     const res = await api.get("/conversations");
@@ -43,7 +45,7 @@ export const conversationApi = {
   }
 };
 
-// Message APIs
+// Message APIs (Member 2)
 export const messageApi = {
   getMessages: async (conversationId, { limit = 30, cursor = null, before = null } = {}) => {
     const params = { limit };
