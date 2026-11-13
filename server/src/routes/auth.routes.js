@@ -5,7 +5,9 @@ const authController = require("../controllers/auth.controller");
 
 const {
     validateRegistration,
-    validateLogin
+    validateLogin,
+    validateEmailVerification,
+    validateResendVerification
 } = require("../validators/auth.validator");
 
 const {
@@ -18,6 +20,18 @@ router.post(
     "/register",
     validateRegistration,
     authController.register
+);
+
+router.post(
+    "/verify-email",
+    validateEmailVerification,
+    authController.verifyEmail
+);
+
+router.post(
+    "/resend-verification",
+    validateResendVerification,
+    authController.resendVerification
 );
 
 router.post(
