@@ -7,9 +7,12 @@ const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
-// CORS configuration
+// Allow both localhost and 127.0.0.1 frontend origins.
 app.use(cors({
-    origin: "http://127.0.0.1:5173"
+    origin: [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ]
 }));
 
 // Parse incoming JSON requests
