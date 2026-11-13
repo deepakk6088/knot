@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/chat/Sidebar";
@@ -5,6 +6,7 @@ import ChatWindow from "./components/chat/ChatWindow";
 import EmptyChatState from "./components/chat/EmptyChatState";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
+import VerifyEmail from "./components/auth/VerifyEmail";
 import { useAuth } from "./context/AuthContext";
 import { conversationApi } from "./services/api";
 
@@ -95,7 +97,9 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
 
 export default function App() {
   const { user, isAuthenticated, loading, logout } = useAuth();
-  const [devMode, setDevMode] = useState(() => localStorage.getItem("knot_dev_mode") === "true");
+  const [devMode, setDevMode] = useState(
+    () => localStorage.getItem("knot_dev_mode") === "true"
+  );
 
   const [currentUser, setCurrentUser] = useState(() => {
     if (user?.id) return user;
@@ -121,8 +125,12 @@ export default function App() {
       logout();
       return;
     }
-    const currentIndex = DEMO_USERS.findIndex((u) => u.id === currentUser?.id);
-    const nextUser = DEMO_USERS[(currentIndex + 1) % DEMO_USERS.length];
+    const currentIndex = DEMO_USERS.findIndex(
+      (u) => u.id === currentUser?.id
+    );
+    const nextUser = DEMO_USERS[
+      (currentIndex + 1) % DEMO_USERS.length
+    ];
     setCurrentUser(nextUser);
   };
 
@@ -140,7 +148,9 @@ export default function App() {
       <div className="h-screen w-screen flex items-center justify-center bg-[#f5f3ee] text-slate-700">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#1e3a8a] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-semibold tracking-wide text-slate-700">Loading KNOT...</p>
+          <p className="text-sm font-semibold tracking-wide text-slate-700">
+            Loading KNOT...
+          </p>
         </div>
       </div>
     );
@@ -175,10 +185,25 @@ export default function App() {
             )
           }
         />
+
         <Route
           path="/signup"
-          element={isAccessAllowed ? <Navigate to="/" replace /> : <Signup />}
+          element={
+            isAccessAllowed ? <Navigate to="/" replace /> : <Signup />
+          }
         />
+
+        <Route
+          path="/verify-email"
+          element={
+            isAccessAllowed ? (
+              <Navigate to="/" replace />
+            ) : (
+              <VerifyEmail />
+            )
+          }
+        />
+
         <Route
           path="/"
           element={
@@ -194,6 +219,7 @@ export default function App() {
             )
           }
         />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
