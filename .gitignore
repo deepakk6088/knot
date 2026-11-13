@@ -8,3 +8,5 @@ node_modules/
 
 # Generated Prisma client
 server/src/generated/
+
+client/dist/
