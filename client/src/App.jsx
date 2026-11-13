@@ -66,7 +66,7 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans text-slate-100 antialiased select-none">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#08090d] font-sans text-white antialiased select-none">
       <Sidebar
         conversations={conversations}
         selectedConversationId={selectedConversation?.id}
@@ -137,7 +137,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-950 text-slate-400">
+      <div className="h-screen w-screen flex items-center justify-center bg-[#08090d] text-gray-400">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm font-medium">Loading KNOT...</p>
@@ -165,7 +165,7 @@ export default function App() {
                       setDevMode(true);
                       localStorage.setItem("knot_dev_mode", "true");
                     }}
-                    className="px-3.5 py-2 text-xs font-medium bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 rounded-xl shadow-xl transition-all cursor-pointer backdrop-blur"
+                    className="px-3.5 py-2 text-xs font-medium bg-[#181a24] hover:bg-[#1f2230] text-gray-300 hover:text-white border border-white/10 hover:border-indigo-500/40 rounded-xl shadow-xl transition-all cursor-pointer backdrop-blur"
                   >
                     ⚡ Test Chat UI (Dev Mode)
                   </button>

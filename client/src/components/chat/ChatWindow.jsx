@@ -3,7 +3,7 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import { messageApi } from "../../services/api";
 import { getInitials } from "../../utils/formatters";
-import { User, MoreVertical, Phone, Video } from "lucide-react";
+import { MoreVertical, Phone, Video } from "lucide-react";
 
 export default function ChatWindow({ conversation, currentUserId }) {
   const [messages, setMessages] = useState([]);
@@ -54,7 +54,6 @@ export default function ChatWindow({ conversation, currentUserId }) {
       });
 
       if (res.success) {
-        // Prepend older messages
         setMessages((prev) => [...res.data, ...prev]);
         setPagination({
           hasMore: res.pagination?.hasMore || false,
@@ -72,7 +71,6 @@ export default function ChatWindow({ conversation, currentUserId }) {
   const handleSendMessage = async (content) => {
     if (!conversation?.id || !content.trim()) return;
 
-    // Optimistic message update
     const tempId = "temp-" + Date.now();
     const optimisticMsg = {
       id: tempId,
@@ -94,50 +92,49 @@ export default function ChatWindow({ conversation, currentUserId }) {
       }
     } catch (err) {
       console.error("Failed to send message:", err);
-      // Remove or mark failed
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-[#08090d] relative overflow-hidden">
       {/* Chat Window Header */}
-      <div className="h-16 px-5 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0 shadow-sm z-10">
+      <div className="h-16 px-6 bg-[#101117] border-b border-white/10 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-3">
           <div className="relative">
             {otherUser?.avatarUrl ? (
               <img
                 src={otherUser.avatarUrl}
                 alt={otherUser.displayName || otherUser.username}
-                className="w-10 h-10 rounded-full object-cover border border-slate-700"
+                className="w-10 h-10 rounded-2xl object-cover border border-white/10"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 font-semibold text-sm">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-semibold text-sm">
                 {getInitials(otherUser?.displayName || otherUser?.username)}
               </div>
             )}
-            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-900" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#101117]" />
           </div>
 
           <div>
-            <h2 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
               {otherUser?.displayName || otherUser?.username || "Unknown Contact"}
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-gray-400">
               @{otherUser?.username || "user"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 text-slate-400">
-          <button className="p-2 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer" title="Audio Call">
-            <Phone size={18} />
+        <div className="flex items-center gap-1 text-gray-400">
+          <button className="p-2 hover:bg-white/5 hover:text-white rounded-xl transition-colors cursor-pointer" title="Audio Call">
+            <Phone size={17} />
           </button>
-          <button className="p-2 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer" title="Video Call">
-            <Video size={18} />
+          <button className="p-2 hover:bg-white/5 hover:text-white rounded-xl transition-colors cursor-pointer" title="Video Call">
+            <Video size={17} />
           </button>
-          <button className="p-2 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer" title="More Options">
-            <MoreVertical size={18} />
+          <button className="p-2 hover:bg-white/5 hover:text-white rounded-xl transition-colors cursor-pointer" title="More Options">
+            <MoreVertical size={17} />
           </button>
         </div>
       </div>
