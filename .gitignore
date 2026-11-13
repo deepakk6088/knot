@@ -6,6 +6,11 @@
 # Dependencies
 node_modules/
 
+# Build artifacts
+dist/
+dist-ssr/
+client/dist/
+
 # Generated Prisma client
 server/src/generated/
 
