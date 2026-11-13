@@ -11,9 +11,9 @@ export default function ConversationList({
 }) {
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-2 p-6">
-        <Loader2 className="animate-spin text-indigo-500" size={24} />
-        <span className="text-xs">Loading conversations...</span>
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2.5 p-6">
+        <Loader2 className="animate-spin text-indigo-600" size={26} />
+        <span className="text-xs font-medium">Loading conversations...</span>
       </div>
     );
   }
@@ -28,14 +28,14 @@ export default function ConversationList({
 
   if (filtered.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-2 p-6 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2">
-          <MessageCircle size={24} />
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2 p-6 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-2 shadow-xs">
+          <MessageCircle size={22} />
         </div>
-        <p className="text-sm font-semibold text-white">
+        <p className="text-sm font-bold text-slate-800">
           {searchQuery ? "No matching conversations" : "No conversations yet"}
         </p>
-        <p className="text-xs text-gray-400 max-w-[200px] leading-relaxed">
+        <p className="text-xs text-slate-500 max-w-[200px] leading-relaxed">
           {searchQuery
             ? "Try searching for another contact name or username."
             : "Click the + icon above to start your first chat."}
@@ -45,7 +45,7 @@ export default function ConversationList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04]">
+    <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
       {filtered.map((conv) => (
         <ConversationItem
           key={conv.id}

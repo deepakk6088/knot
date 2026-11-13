@@ -40,8 +40,8 @@ export default function MessageList({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
-        <Loader2 className="animate-spin text-indigo-500" size={30} />
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-3">
+        <Loader2 className="animate-spin text-indigo-600" size={30} />
         <span className="text-xs font-medium">Loading chat history...</span>
       </div>
     );
@@ -49,12 +49,12 @@ export default function MessageList({
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-2 p-6 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-2">
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2 p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-2 shadow-xs">
           <MessageSquare size={24} />
         </div>
-        <p className="text-sm font-semibold text-white">No messages yet</p>
-        <p className="text-xs text-gray-400 max-w-xs leading-relaxed">
+        <p className="text-sm font-bold text-slate-800">No messages yet</p>
+        <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
           Send a message below to start your conversation.
         </p>
       </div>
@@ -74,16 +74,16 @@ export default function MessageList({
           <button
             onClick={handleLoadMoreClick}
             disabled={isLoadingMore}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium bg-[#181a24] hover:bg-[#202230] border border-white/10 text-gray-300 hover:text-white transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
           >
             {isLoadingMore ? (
               <>
-                <Loader2 size={13} className="animate-spin text-indigo-400" />
+                <Loader2 size={13} className="animate-spin text-indigo-600" />
                 <span>Loading older messages...</span>
               </>
             ) : (
               <>
-                <ArrowUpCircle size={14} className="text-indigo-400" />
+                <ArrowUpCircle size={14} className="text-indigo-600" />
                 <span>Load previous messages</span>
               </>
             )}
@@ -103,7 +103,7 @@ export default function MessageList({
           <React.Fragment key={message.id}>
             {showDivider && (
               <div className="flex items-center justify-center my-4">
-                <span className="px-3.5 py-1 rounded-full text-[11px] font-medium bg-[#181a24] text-gray-400 border border-white/10 uppercase tracking-wider shadow-sm">
+                <span className="px-3.5 py-1 rounded-full text-[11px] font-semibold bg-white/90 backdrop-blur-xs text-slate-500 border border-slate-200/80 uppercase tracking-wider shadow-xs">
                   {formatDateDivider(message.createdAt)}
                 </span>
               </div>
