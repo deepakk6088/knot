@@ -14,8 +14,8 @@ export default function MessageBubble({ message, isOwnMessage }) {
       <div
         className={`max-w-[75%] sm:max-w-[65%] md:max-w-[60%] px-4 py-2.5 rounded-2xl text-sm relative break-words ${
           isOwnMessage
-            ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-br-xs shadow-md shadow-indigo-500/20"
-            : "bg-white text-slate-800 rounded-bl-xs border border-slate-200/80 shadow-xs"
+            ? "bg-[#1e40af] text-[#fbf9f5] rounded-br-xs shadow-md shadow-[#1e40af]/20"
+            : "bg-[#ffffff] text-slate-800 rounded-bl-xs border border-[#ded8cb] shadow-2xs"
         }`}
       >
         {/* Message Content */}
@@ -24,7 +24,7 @@ export default function MessageBubble({ message, isOwnMessage }) {
         {/* Timestamp & Status Metadata */}
         <div
           className={`flex items-center justify-end gap-1.5 mt-1 text-[11px] font-medium ${
-            isOwnMessage ? "text-indigo-100/90" : "text-slate-400"
+            isOwnMessage ? "text-[#c7d7f7]" : "text-slate-400"
           }`}
         >
           <span>{formatMessageTime(createdAt)}</span>
@@ -32,11 +32,11 @@ export default function MessageBubble({ message, isOwnMessage }) {
           {isOwnMessage && (
             <span className="inline-flex items-center ml-0.5">
               {status === "READ" ? (
-                <CheckCheck size={14} className="text-white stroke-[2.5]" title="Read" />
+                <CheckCheck size={14} className="text-[#fbf9f5] stroke-[2.5]" title="Read" />
               ) : status === "DELIVERED" ? (
-                <CheckCheck size={14} className="text-indigo-200 stroke-[2]" title="Delivered" />
+                <CheckCheck size={14} className="text-[#bfd0f0] stroke-[2]" title="Delivered" />
               ) : (
-                <Check size={14} className="text-indigo-200/80 stroke-[1.8]" title="Sent" />
+                <Check size={14} className="text-[#bfd0f0]/80 stroke-[1.8]" title="Sent" />
               )}
             </span>
           )}

@@ -68,15 +68,15 @@ export function getInitials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-// Deterministic rich jewel-tone palette for contact avatars
-const AVATAR_PALETTES = [
-  { bg: "bg-indigo-100", text: "text-indigo-700", border: "border-indigo-200" },
-  { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200" },
-  { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200" },
-  { bg: "bg-amber-100", text: "text-amber-800", border: "border-amber-200" },
-  { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
-  { bg: "bg-sky-100", text: "text-sky-700", border: "border-sky-200" },
-  { bg: "bg-teal-100", text: "text-teal-700", border: "border-teal-200" }
+// Sophisticated Royal, Olive and Heritage tone palettes
+const HERITAGE_PALETTES = [
+  { bg: "bg-[#e8edf7]", text: "text-[#1e3a8a]", border: "border-[#bfd0f0]" }, // Royal Blue
+  { bg: "bg-[#edf2ea]", text: "text-[#34452e]", border: "border-[#c8d8c3]" }, // Rich Olive
+  { bg: "bg-[#f5f1e4]", text: "text-[#6b551e]", border: "border-[#dfd5b9]" }, // Muted Bronze Gold
+  { bg: "bg-[#e6f1ee]", text: "text-[#1d4d42]", border: "border-[#bedcd4]" }, // Deep Pine Sage
+  { bg: "bg-[#f8ede6]", text: "text-[#853f19]", border: "border-[#edd0be]" }, // Terracotta
+  { bg: "bg-[#f6e8ee]", text: "text-[#78183c]", border: "border-[#e7bed0]" }, // Warm Burgundy
+  { bg: "bg-[#e9edf2]", text: "text-[#24354c]", border: "border-[#c4cfdf]" }  // Slate Navy
 ];
 
 export function getAvatarColor(identifier = "") {
@@ -84,6 +84,6 @@ export function getAvatarColor(identifier = "") {
   for (let i = 0; i < identifier.length; i++) {
     hash = identifier.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const index = Math.abs(hash) % AVATAR_PALETTES.length;
-  return AVATAR_PALETTES[index];
+  const index = Math.abs(hash) % HERITAGE_PALETTES.length;
+  return HERITAGE_PALETTES[index];
 }

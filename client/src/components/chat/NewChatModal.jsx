@@ -37,12 +37,12 @@ export default function NewChatModal({ isOpen, onClose, onConversationCreated })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-      <div className="bg-white border border-slate-200/90 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 backdrop-blur-xs p-4">
+      <div className="bg-[#fbf9f5] border border-[#ded8cb] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
+        <div className="px-6 py-5 border-b border-[#e5dfd5] bg-[#f5f1e8] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 border border-indigo-200/80 flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-[#e8edf7] text-[#1e3a8a] border border-[#bfd0f0] flex items-center justify-center shadow-xs">
               <UserPlus size={18} />
             </div>
             <div>
@@ -52,7 +52,7 @@ export default function NewChatModal({ isOpen, onClose, onConversationCreated })
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1 rounded-xl hover:bg-slate-100"
+            className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer p-1 rounded-xl hover:bg-[#ede8de]"
           >
             <X size={18} />
           </button>
@@ -69,7 +69,7 @@ export default function NewChatModal({ isOpen, onClose, onConversationCreated })
               placeholder="e.g. a0000000-0000-0000-0000-000000000001"
               value={targetUserId}
               onChange={(e) => setTargetUserId(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 transition-all"
+              className="w-full bg-[#ffffff] border border-[#ded8cb] rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] transition-all"
               autoFocus
             />
             <p className="text-[11px] text-slate-400 mt-1.5">
@@ -88,14 +88,14 @@ export default function NewChatModal({ isOpen, onClose, onConversationCreated })
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-[#ede8de] rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !targetUserId.trim()}
-              className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl shadow-md shadow-indigo-500/25 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold bg-[#1e3a8a] hover:bg-[#1e40af] text-[#fbf9f5] rounded-xl shadow-md shadow-[#1e3a8a]/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

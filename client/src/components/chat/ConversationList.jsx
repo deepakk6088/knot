@@ -12,8 +12,8 @@ export default function ConversationList({
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2.5 p-6">
-        <Loader2 className="animate-spin text-indigo-600" size={26} />
-        <span className="text-xs font-medium">Loading conversations...</span>
+        <Loader2 className="animate-spin text-[#1e3a8a]" size={26} />
+        <span className="text-xs font-semibold text-slate-600">Loading conversations...</span>
       </div>
     );
   }
@@ -29,10 +29,10 @@ export default function ConversationList({
   if (filtered.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-2 p-6 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 mb-2 shadow-xs">
+        <div className="w-12 h-12 rounded-2xl bg-[#edf2ea] border border-[#c8d8c3] flex items-center justify-center text-[#34452e] mb-2 shadow-xs">
           <MessageCircle size={22} />
         </div>
-        <p className="text-sm font-bold text-slate-800">
+        <p className="text-sm font-bold text-slate-900">
           {searchQuery ? "No matching conversations" : "No conversations yet"}
         </p>
         <p className="text-xs text-slate-500 max-w-[200px] leading-relaxed">
@@ -45,7 +45,7 @@ export default function ConversationList({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+    <div className="flex-1 overflow-y-auto divide-y divide-[#ede8de]">
       {filtered.map((conv) => (
         <ConversationItem
           key={conv.id}

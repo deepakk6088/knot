@@ -138,13 +138,13 @@ function Signup() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50/70 via-slate-50 to-violet-50/50 text-slate-900 flex items-center justify-center p-4 sm:p-6">
-            <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_20px_60px_-15px_rgba(79,70,229,0.12)]">
+        <div className="min-h-screen bg-[#f5f3ee] text-slate-900 flex items-center justify-center p-4 sm:p-6">
+            <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-[#ded8cb] bg-[#fbf9f5] shadow-[0_20px_50px_rgba(30,58,138,0.07)]">
 
                 <div className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
 
                     <div className="flex items-center gap-3 mb-8">
-                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                        <div className="w-11 h-11 rounded-2xl bg-[#1e3a8a] text-[#fbf9f5] flex items-center justify-center shadow-md shadow-[#1e3a8a]/20">
                             <MessageCircle size={22} />
                         </div>
 
@@ -155,7 +155,7 @@ function Signup() {
 
                     <div className="max-w-md w-full mx-auto">
 
-                        <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider mb-2">
+                        <p className="text-xs text-[#34452e] font-bold uppercase tracking-wider mb-2">
                             Get Started
                         </p>
 
@@ -188,7 +188,7 @@ function Signup() {
                                     placeholder="Enter your display name"
                                     autoComplete="name"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
+                                    className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                 />
                             </div>
 
@@ -210,7 +210,7 @@ function Signup() {
                                     placeholder="Choose a username"
                                     autoComplete="username"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
+                                    className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                 />
                             </div>
 
@@ -232,7 +232,7 @@ function Signup() {
                                     placeholder="Enter your email"
                                     autoComplete="email"
                                     disabled={isSubmitting}
-                                    className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
+                                    className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                 />
                             </div>
 
@@ -255,7 +255,7 @@ function Signup() {
                                         placeholder="Create a password"
                                         autoComplete="new-password"
                                         disabled={isSubmitting}
-                                        className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
+                                        className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                     />
 
                                     <button
@@ -302,7 +302,7 @@ function Signup() {
                                         placeholder="Confirm your password"
                                         autoComplete="new-password"
                                         disabled={isSubmitting}
-                                        className="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60 text-sm"
+                                        className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
                                     />
 
                                     <button
@@ -329,19 +329,19 @@ function Signup() {
                             </div>
 
                             {validationError && (
-                                <p role="alert" className="text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
+                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
                                     {validationError}
                                 </p>
                             )}
 
                             {serverError && (
-                                <p role="alert" className="text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
+                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
                                     {serverError}
                                 </p>
                             )}
 
                             {successMessage && (
-                                <p role="status" className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl">
+                                <p role="status" className="text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl">
                                     {successMessage}
                                 </p>
                             )}
@@ -349,7 +349,7 @@ function Signup() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white py-3.5 font-semibold transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer text-sm"
+                                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#1e3a8a] hover:bg-[#1e40af] text-[#fbf9f5] py-3.5 font-semibold transition-all shadow-md shadow-[#1e3a8a]/20 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer text-sm"
                             >
                                 {isSubmitting ? (
                                     <>
@@ -373,7 +373,7 @@ function Signup() {
                             Already have an account?{" "}
                             <Link
                                 to="/login"
-                                className="text-indigo-600 font-bold hover:text-indigo-700 transition"
+                                className="text-[#1e3a8a] font-bold hover:text-[#172554] transition"
                             >
                                 Sign in
                             </Link>
