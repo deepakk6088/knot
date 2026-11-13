@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
     Eye,
@@ -7,11 +8,13 @@ import {
     UserRound,
     LoaderCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { registerUser } from "../../services/auth.service.js";
 
 function Signup() {
+    const navigate = useNavigate();
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -23,7 +26,6 @@ function Signup() {
 
     const [validationError, setValidationError] = useState("");
     const [serverError, setServerError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     function validateForm() {
@@ -75,7 +77,6 @@ function Signup() {
 
         setValidationError("");
         setServerError("");
-        setSuccessMessage("");
 
         const error = validateForm();
 
@@ -94,19 +95,13 @@ function Signup() {
                 password
             });
 
-            if (!data.success || !data.user) {
+            if (!data.success || !data.email) {
                 throw new Error("Invalid registration response from server.");
             }
 
-            setSuccessMessage(
-                "Your account has been created successfully. You can now sign in."
-            );
-
-            setDisplayName("");
-            setUsername("");
-            setEmail("");
-            setPassword("");
-            setConfirmPassword("");
+            navigate("/verify-email", {
+                state: { email: data.email }
+            });
         } catch (error) {
             const status = error.response?.status;
 
@@ -129,6 +124,7 @@ function Signup() {
             } else {
                 setServerError(
                     error.response?.data?.message ||
+                    error.message ||
                     "Unable to create your account. Please try again."
                 );
             }
@@ -329,20 +325,20 @@ function Signup() {
                             </div>
 
                             {validationError && (
-                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
+                                <p
+                                    role="alert"
+                                    className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl"
+                                >
                                     {validationError}
                                 </p>
                             )}
 
                             {serverError && (
-                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
+                                <p
+                                    role="alert"
+                                    className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl"
+                                >
                                     {serverError}
-                                </p>
-                            )}
-
-                            {successMessage && (
-                                <p role="status" className="text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl">
-                                    {successMessage}
                                 </p>
                             )}
 
