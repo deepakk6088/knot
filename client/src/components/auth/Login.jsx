@@ -8,6 +8,7 @@ import {
     LockKeyhole,
     LoaderCircle
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 import { loginUser } from "../../services/auth.service.js";
@@ -207,9 +208,12 @@ function Login() {
 
                         <p className="text-center text-sm text-gray-400 mt-8">
                             Don't have an account?{" "}
-                            <span className="text-indigo-400 font-semibold">
+                            <Link
+                                to="/signup"
+                                className="text-indigo-400 font-semibold hover:text-indigo-300 transition"
+                            >
                                 Sign up
-                            </span>
+                            </Link>
                         </p>
 
                     </div>
