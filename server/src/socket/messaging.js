@@ -254,6 +254,103 @@ function registerMessagingHandlers(io, socket) {
       return socket.emit("message:error", errorResponse);
     }
   });
+  // 4. Mark Messages as Read
+  //
+  // Client emits this event when the authenticated user has viewed messages in
+  // a conversation. Only messages sent by the OTHER participant that are not
+  // already READ are updated. The user's own messages are never touched.
+  socket.on("message:read", async (data, callback) => {
+    const readerId = socket.user?.id;
+
+    if (!readerId) {
+      const errorResponse = { success: false, error: "Unauthorized: Authentication required" };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+
+    const conversationId = typeof data === "string" ? data : data?.conversationId;
+
+    if (!conversationId || typeof conversationId !== "string" || !conversationId.trim()) {
+      const errorResponse = { success: false, error: "conversationId is required" };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+
+    const trimmedConvId = conversationId.trim();
+
+    try {
+      // markConversationAsRead internally verifies conversation existence and
+      // that readerId is a participant (throws 403/404 otherwise).
+      // It updates only messages where senderId ≠ readerId and status ≠ READ.
+      const { updatedCount } = await messageService.markConversationAsRead({
+        conversationId: trimmedConvId,
+        userId: readerId
+      });
+
+      // Acknowledge to the reader regardless of whether anything was updated.
+      if (typeof callback === "function") {
+        callback({ success: true, conversationId: trimmedConvId, updatedCount });
+      }
+
+      // If nothing was updated there is no receipt to broadcast — the sender
+      // already knows these messages are READ, or there were no eligible messages.
+      if (updatedCount === 0) {
+        return;
+      }
+
+      // Fetch the IDs and readAt of the messages we just marked READ so the
+      // sender receives an accurate, specific receipt payload.
+      // We use the same timestamp window (last second) to scope the query tightly.
+      const readAt = new Date();
+      const updatedMessages = await prisma.message.findMany({
+        where: {
+          conversationId: trimmedConvId,
+          senderId: { not: readerId },
+          status: "READ"
+        },
+        select: { id: true, senderId: true, readAt: true },
+        orderBy: { createdAt: "desc" },
+        take: updatedCount  // limit to exactly what was just updated
+      });
+
+      // Derive the sender from the updated message rows — all updated messages
+      // share the same senderId (the other participant in a 1-to-1 conversation).
+      const otherUserId = updatedMessages.length > 0 ? updatedMessages[0].senderId : null;
+
+      // Use the most recent readAt from the DB rows; fall back to now().
+      const confirmedReadAt = (updatedMessages.length > 0 && updatedMessages[0].readAt)
+        ? updatedMessages[0].readAt
+        : readAt;
+
+      const messageIds = updatedMessages.map((m) => m.id);
+
+      // Notify the original sender (all their tabs) that their messages were read.
+      if (otherUserId) {
+        io.to(otherUserId).emit("message:read", {
+          conversationId: trimmedConvId,
+          readerId,
+          messageIds,
+          status: "READ",
+          readAt: confirmedReadAt
+        });
+
+        console.log(
+          `[Socket] READ receipt sent to user ${otherUserId} for ${updatedCount} message(s) in conversation ${trimmedConvId}`
+        );
+      }
+    } catch (error) {
+      console.error(`[Socket] Error marking messages as read in conversation ${trimmedConvId}:`, error);
+      const statusCode = error.statusCode || 500;
+      const errorResponse = {
+        success: false,
+        error: error.message || "Failed to mark messages as read",
+        statusCode
+      };
+
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+  });
 }
 
 module.exports = {
