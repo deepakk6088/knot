@@ -4,6 +4,11 @@ const prisma = require("../config/prisma");
 const { isUserOnline } = require("./presence");
 const { canTransition, buildReceiptPayload } = require("./reciepts");
 
+// In-flight delivery-sync guard.
+// Set<"userId:conversationId"> — prevents a second socket for the same user
+// from triggering a duplicate offline-delivery sync while one is already running.
+const deliverySyncInFlight = new Set();
+
 // In-memory deduplication cache to prevent duplicate persistence (e.g. rapid network retries)
 const recentMessagesCache = new Map();
 const DEDUP_TTL_MS = 60 * 1000; // 60 seconds
@@ -51,6 +56,64 @@ function registerMessagingHandlers(io, socket) {
       // Join the conversation room
       socket.join(trimmedConvId);
       console.log(`[Socket] User ${currentUserId} (${socket.id}) joined room: ${trimmedConvId}`);
+
+      // ── Offline delivery sync ───────────────────────────────────────────────
+      // When a recipient joins a conversation they may have SENT messages that
+      // arrived while they were offline.  Upgrade those to DELIVERED now and
+      // notify each original sender in real time.
+      //
+      // Guard: skip if another socket for the same user is already syncing
+      // this conversation (multi-connection duplicate prevention).
+      //
+      // Runs fire-and-forget so it never blocks the join acknowledgement.
+      const syncKey = `${currentUserId}:${trimmedConvId}`;
+      if (!deliverySyncInFlight.has(syncKey)) {
+        deliverySyncInFlight.add(syncKey);
+        (async () => {
+          try {
+            const deliveredMessages = await messageService.markConversationAsDelivered({
+              conversationId: trimmedConvId,
+              recipientId: currentUserId
+            });
+
+            if (deliveredMessages.length > 0) {
+              // Group by senderId so we send one receipt per original sender
+              // (in a 1-to-1 conversation this is always the same sender, but
+              // the grouping makes it safe if the data model ever widens).
+              const bySender = new Map();
+              for (const msg of deliveredMessages) {
+                if (!bySender.has(msg.senderId)) bySender.set(msg.senderId, []);
+                bySender.get(msg.senderId).push(msg);
+              }
+
+              for (const [senderId, msgs] of bySender) {
+                // Emit to the sender's personal room (all their tabs)
+                io.to(senderId).emit("message:delivered", {
+                  conversationId: trimmedConvId,
+                  recipientId: currentUserId,
+                  messageIds: msgs.map((m) => m.id),
+                  status: "DELIVERED",
+                  deliveredAt: msgs[0].deliveredAt   // same timestamp for the batch
+                });
+              }
+
+              console.log(
+                `[Socket] Offline delivery sync: ${deliveredMessages.length} message(s) ` +
+                `marked DELIVERED in conversation ${trimmedConvId} for recipient ${currentUserId}`
+              );
+            }
+          } catch (err) {
+            // Non-fatal: log but do not propagate — the join itself succeeded.
+            console.error(
+              `[Socket] Offline delivery sync failed for conversation ${trimmedConvId}:`,
+              err.message
+            );
+          } finally {
+            deliverySyncInFlight.delete(syncKey);
+          }
+        })();
+      }
+      // ────────────────────────────────────────────────────────────────────────
 
       if (typeof callback === "function") {
         return callback({ success: true, conversationId: trimmedConvId });
