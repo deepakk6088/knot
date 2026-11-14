@@ -7,13 +7,14 @@ import {
     LockKeyhole,
     LoaderCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 import { loginUser } from "../../services/auth.service.js";
 
 function Login() {
     const { setSession } = useAuth();
+    const navigate = useNavigate();
 
     const [showPassword, setShowPassword] = useState(false);
     const [identifier, setIdentifier] = useState("");
@@ -51,6 +52,24 @@ function Login() {
             setSession(data.user, data.token);
         } catch (error) {
             const status = error.response?.status;
+            const errorCode = error.response?.data?.code;
+
+            if (
+                status === 403 &&
+                errorCode === "EMAIL_NOT_VERIFIED"
+            ) {
+                const enteredIdentifier = identifier.trim();
+
+                navigate("/verify-email", {
+                    state: {
+                        email: enteredIdentifier.includes("@")
+                            ? enteredIdentifier
+                            : ""
+                    }
+                });
+
+                return;
+            }
 
             if (status === 401) {
                 setServerError(

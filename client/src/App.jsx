@@ -3,8 +3,11 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/chat/Sidebar";
 import ChatWindow from "./components/chat/ChatWindow";
 import EmptyChatState from "./components/chat/EmptyChatState";
+import ProfilePage from "./components/pages/ProfilePage";
+import SettingsPage from "./components/pages/SettingsPage";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
+import VerifyEmail from "./components/auth/VerifyEmail";
 import { useAuth } from "./context/AuthContext";
 import { conversationApi } from "./services/api";
 
@@ -27,17 +30,27 @@ const DEMO_USERS = [
   }
 ];
 
-function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
+function ChatLayout({
+  currentUser,
+  onSwitchUser,
+  onLogout,
+  onProfileUpdated,
+  isDevMode
+}) {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeView, setActiveView] = useState("chat");
 
   const loadConversations = useCallback(async () => {
     setIsLoading(true);
+
     try {
       const res = await conversationApi.getConversations();
+
       if (res.success) {
         setConversations(res.data);
+
         setSelectedConversation((prev) => {
           if (!prev) return null;
           return res.data.find((c) => c.id === prev.id) || prev;
@@ -57,12 +70,18 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
   const handleConversationCreated = (newConv) => {
     setConversations((prev) => {
       const exists = prev.some((c) => c.id === newConv.id);
+
       if (exists) {
-        return prev.map((c) => (c.id === newConv.id ? newConv : c));
+        return prev.map((c) =>
+          c.id === newConv.id ? newConv : c
+        );
       }
+
       return [newConv, ...prev];
     });
+
     setSelectedConversation(newConv);
+    setActiveView("chat");
   };
 
   return (
@@ -70,17 +89,30 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
       <Sidebar
         conversations={conversations}
         selectedConversationId={selectedConversation?.id}
-        onSelectConversation={setSelectedConversation}
+        onSelectConversation={(conversation) => {
+          setSelectedConversation(conversation);
+          setActiveView("chat");
+        }}
         isLoading={isLoading}
         currentUser={currentUser}
         onRefresh={loadConversations}
         onConversationCreated={handleConversationCreated}
         onSwitchUser={onSwitchUser}
         onLogout={onLogout}
+        onOpenProfile={() => setActiveView("profile")}
+        onOpenSettings={() => setActiveView("settings")}
         isDevMode={isDevMode}
       />
 
-      {selectedConversation ? (
+      {activeView === "profile" ? (
+        <ProfilePage
+          currentUser={currentUser}
+          onProfileUpdated={onProfileUpdated}
+          onBack={() => setActiveView("chat")}
+        />
+      ) : activeView === "settings" ? (
+        <SettingsPage onBack={() => setActiveView("chat")} />
+      ) : selectedConversation ? (
         <ChatWindow
           key={selectedConversation.id}
           conversation={selectedConversation}
@@ -94,12 +126,23 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
 }
 
 export default function App() {
-  const { user, isAuthenticated, loading, logout } = useAuth();
-  const [devMode, setDevMode] = useState(() => localStorage.getItem("knot_dev_mode") === "true");
+  const {
+    user,
+    isAuthenticated,
+    loading,
+    logout,
+    updateUser
+  } = useAuth();
+
+  const [devMode, setDevMode] = useState(
+    () => localStorage.getItem("knot_dev_mode") === "true"
+  );
 
   const [currentUser, setCurrentUser] = useState(() => {
     if (user?.id) return user;
+
     const savedId = localStorage.getItem("knot_user_id");
+
     return DEMO_USERS.find((u) => u.id === savedId) || DEMO_USERS[0];
   });
 
@@ -116,13 +159,33 @@ export default function App() {
     }
   }, [currentUser, isAuthenticated]);
 
+  // Update the displayed user after a profile save.
+  // This also supports development/demo mode.
+  const handleProfileUpdated = (updatedUser) => {
+    setCurrentUser((previousUser) => ({
+      ...previousUser,
+      ...updatedUser
+    }));
+
+    if (isAuthenticated) {
+      updateUser(updatedUser);
+    }
+  };
+
   const handleSwitchUser = () => {
     if (isAuthenticated) {
       logout();
       return;
     }
-    const currentIndex = DEMO_USERS.findIndex((u) => u.id === currentUser?.id);
-    const nextUser = DEMO_USERS[(currentIndex + 1) % DEMO_USERS.length];
+
+    const currentIndex = DEMO_USERS.findIndex(
+      (u) => u.id === currentUser?.id
+    );
+
+    const nextUser = DEMO_USERS[
+      (currentIndex + 1) % DEMO_USERS.length
+    ];
+
     setCurrentUser(nextUser);
   };
 
@@ -140,7 +203,9 @@ export default function App() {
       <div className="h-screen w-screen flex items-center justify-center bg-[#f5f3ee] text-slate-700">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#1e3a8a] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-semibold tracking-wide text-slate-700">Loading KNOT...</p>
+          <p className="text-sm font-semibold tracking-wide text-slate-700">
+            Loading KNOT...
+          </p>
         </div>
       </div>
     );
@@ -159,6 +224,7 @@ export default function App() {
             ) : (
               <div className="relative">
                 <Login />
+
                 <div className="fixed bottom-4 right-4 z-50">
                   <button
                     onClick={() => {
@@ -175,10 +241,25 @@ export default function App() {
             )
           }
         />
+
         <Route
           path="/signup"
-          element={isAccessAllowed ? <Navigate to="/" replace /> : <Signup />}
+          element={
+            isAccessAllowed ? <Navigate to="/" replace /> : <Signup />
+          }
         />
+
+        <Route
+          path="/verify-email"
+          element={
+            isAccessAllowed ? (
+              <Navigate to="/" replace />
+            ) : (
+              <VerifyEmail />
+            )
+          }
+        />
+
         <Route
           path="/"
           element={
@@ -187,6 +268,7 @@ export default function App() {
                 currentUser={currentUser}
                 onSwitchUser={handleSwitchUser}
                 onLogout={handleLogout}
+                onProfileUpdated={handleProfileUpdated}
                 isDevMode={devMode && !isAuthenticated}
               />
             ) : (
@@ -194,6 +276,7 @@ export default function App() {
             )
           }
         />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>

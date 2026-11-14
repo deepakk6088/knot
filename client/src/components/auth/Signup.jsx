@@ -7,11 +7,13 @@ import {
     UserRound,
     LoaderCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { registerUser } from "../../services/auth.service.js";
 
 function Signup() {
+    const navigate = useNavigate();
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -23,7 +25,6 @@ function Signup() {
 
     const [validationError, setValidationError] = useState("");
     const [serverError, setServerError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     function validateForm() {
@@ -75,7 +76,6 @@ function Signup() {
 
         setValidationError("");
         setServerError("");
-        setSuccessMessage("");
 
         const error = validateForm();
 
@@ -94,19 +94,13 @@ function Signup() {
                 password
             });
 
-            if (!data.success || !data.user) {
+            if (!data.success || !data.email) {
                 throw new Error("Invalid registration response from server.");
             }
 
-            setSuccessMessage(
-                "Your account has been created successfully. You can now sign in."
-            );
-
-            setDisplayName("");
-            setUsername("");
-            setEmail("");
-            setPassword("");
-            setConfirmPassword("");
+            navigate("/verify-email", {
+                state: { email: data.email }
+            });
         } catch (error) {
             const status = error.response?.status;
 
@@ -129,6 +123,7 @@ function Signup() {
             } else {
                 setServerError(
                     error.response?.data?.message ||
+                    error.message ||
                     "Unable to create your account. Please try again."
                 );
             }
@@ -174,8 +169,7 @@ function Signup() {
                                     htmlFor="displayName"
                                     className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
-                                    Display Name
-                                    <span className="text-slate-400 font-normal"> (Optional)</span>
+                                    Display Name (optional)
                                 </label>
 
                                 <input
@@ -185,7 +179,7 @@ function Signup() {
                                     onChange={(event) =>
                                         setDisplayName(event.target.value)
                                     }
-                                    placeholder="Enter your display name"
+                                    placeholder="Enter your name"
                                     autoComplete="name"
                                     disabled={isSubmitting}
                                     className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
@@ -219,7 +213,7 @@ function Signup() {
                                     htmlFor="email"
                                     className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
                                 >
-                                    Email
+                                    Email Address
                                 </label>
 
                                 <input
@@ -252,7 +246,7 @@ function Signup() {
                                         onChange={(event) =>
                                             setPassword(event.target.value)
                                         }
-                                        placeholder="Create a password"
+                                        placeholder="Create a strong password"
                                         autoComplete="new-password"
                                         disabled={isSubmitting}
                                         className="w-full rounded-2xl bg-[#ffffff] border border-[#ded8cb] px-4 py-3 pr-12 text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] disabled:opacity-60 text-sm shadow-2xs"
@@ -329,20 +323,20 @@ function Signup() {
                             </div>
 
                             {validationError && (
-                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
+                                <p
+                                    role="alert"
+                                    className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl"
+                                >
                                     {validationError}
                                 </p>
                             )}
 
                             {serverError && (
-                                <p role="alert" className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl">
+                                <p
+                                    role="alert"
+                                    className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3.5 py-2.5 rounded-xl"
+                                >
                                     {serverError}
-                                </p>
-                            )}
-
-                            {successMessage && (
-                                <p role="status" className="text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-xl">
-                                    {successMessage}
                                 </p>
                             )}
 
@@ -382,10 +376,10 @@ function Signup() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block relative min-h-[750px]">
+                <div className="hidden lg:block relative min-h-[650px]">
                     <img
-                        src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200"
-                        alt="Friends spending time together"
+                        src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200"
+                        alt="People collaborating together"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
 
@@ -393,18 +387,15 @@ function Signup() {
 
                     <div className="absolute bottom-12 left-12 right-12 text-white">
                         <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-5 border border-white/30">
-                            <UserRound
-                                size={22}
-                                className="text-white"
-                            />
+                            <UserRound size={22} className="text-white" />
                         </div>
 
                         <h2 className="text-3xl font-extrabold mb-3 leading-tight tracking-tight">
-                            Every connection starts somewhere.
+                            Build connections that last.
                         </h2>
 
                         <p className="text-slate-200 leading-relaxed text-sm">
-                            Create your account and make room for meaningful conversations.
+                            Create your profile and start chatting with the people who matter most.
                         </p>
                     </div>
                 </div>

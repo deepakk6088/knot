@@ -15,8 +15,8 @@ app.use(
   })
 );
 
-// Parse incoming JSON requests
-app.use(express.json());
+// Allow small base64 profile image uploads.
+app.use(express.json({ limit: "8mb" }));
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -52,11 +52,19 @@ app.use((err, req, res, next) => {
     return next(err);
   }
 
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || err.status || 500;
+
+  let message = statusCode === 500
+    ? "Internal server error."
+    : err.message;
+
+  if (err.type === "entity.too.large") {
+    message = "Request is too large. Please use an image smaller than 5 MB.";
+  }
 
   res.status(statusCode).json({
     success: false,
-    message: statusCode === 500 ? "Internal server error." : err.message
+    message
   });
 });
 

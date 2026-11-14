@@ -14,3 +14,20 @@ export async function registerUser(userData) {
 
     return response.data;
 }
+
+export async function verifyEmail(email, otp) {
+    const response = await api.post("/auth/verify-email", {
+        email,
+        otp
+    });
+
+    return response.data;
+}
+
+export async function resendVerificationEmail(email) {
+    const response = await api.post("/auth/resend-verification", {
+        email
+    });
+
+    return response.data;
+}
