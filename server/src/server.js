@@ -1,7 +1,9 @@
 require("dotenv").config();
 
+const http = require("http");
 const prisma = require("./config/prisma");
 const app = require("./app");
+const { initSocket } = require("./socket");
 
 const PORT = process.env.PORT || 5001;
 
@@ -10,7 +12,10 @@ async function startServer() {
     await prisma.$connect();
     console.log("PostgreSQL connected successfully through Prisma!");
 
-    const server = app.listen(PORT, () => {
+    const httpServer = http.createServer(app);
+    const io = initSocket(httpServer);
+
+    const server = httpServer.listen(PORT, () => {
       console.log(`KNOT server running on port ${PORT}`);
     });
 
@@ -23,6 +28,8 @@ async function startServer() {
     server.on("close", () => {
       console.log("HTTP server closed");
     });
+
+    return { server, io };
   } catch (error) {
     console.error("Server startup failed:", error);
     await prisma.$disconnect();
@@ -31,3 +38,5 @@ async function startServer() {
 }
 
 startServer();
+
+module.exports = { startServer };

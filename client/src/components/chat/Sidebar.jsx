@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import ConversationList from "./ConversationList";
 import NewChatModal from "./NewChatModal";
@@ -31,70 +30,30 @@ export default function Sidebar({
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const userIdentity = (
-    <>
-      <div className="w-10 h-10 rounded-2xl bg-[#1e3a8a] text-[#fbf9f5] flex items-center justify-center font-bold text-xs shadow-md shadow-[#1e3a8a]/20 overflow-hidden shrink-0">
-        {currentUser?.avatarUrl ? (
-          <img
-            src={currentUser.avatarUrl}
-            alt="Profile"
-            className="w-full h-full object-cover"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
-        ) : (
-          getInitials(
-            currentUser?.displayName || currentUser?.username || "You"
-          )
-        )}
-      </div>
-
-      <div className="min-w-0 text-left">
-        <h1 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 truncate">
-          <span className="truncate">
-            {currentUser?.displayName || currentUser?.username || "KNOT User"}
-          </span>
-
-          {isDevMode && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#edf2ea] text-[#34452e] border border-[#c8d8c3] font-bold shrink-0">
-              OLIVE
-            </span>
-          )}
-        </h1>
-
-        <p
-          className="text-[11px] text-slate-400 font-mono truncate"
-          title={currentUser?.id}
-        >
-          ID: {currentUser?.id ? currentUser.id.slice(0, 8) + "..." : "Guest"}
-        </p>
-      </div>
-    </>
-  );
-
   return (
     <div className="w-80 md:w-96 h-full bg-[#fbf9f5] border-r border-[#e5dfd5] flex flex-col shrink-0 shadow-xs">
-
       {/* Top Header: Current User Identity & Actions */}
       <div className="h-16 px-4 bg-[#fbf9f5] border-b border-[#e5dfd5] flex items-center justify-between shrink-0">
-        {onOpenProfile ? (
-          <button
-            type="button"
-            onClick={onOpenProfile}
-            className="flex items-center gap-3 min-w-0 rounded-xl p-1 -ml-1 hover:bg-[#f1eee7] transition-colors cursor-pointer"
-            title="View and edit profile"
-            aria-label="View and edit profile"
-          >
-            {userIdentity}
-          </button>
-        ) : (
-          <div className="flex items-center gap-3 min-w-0">
-            {userIdentity}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#1e3a8a] text-[#fbf9f5] flex items-center justify-center font-bold text-xs shadow-md shadow-[#1e3a8a]/20">
+            {getInitials(currentUser?.displayName || currentUser?.username || "You")}
           </div>
-        )}
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 truncate">
+              <span>{currentUser?.displayName || currentUser?.username || "KNOT User"}</span>
+              {isDevMode && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#edf2ea] text-[#34452e] border border-[#c8d8c3] font-bold">
+                  OLIVE
+                </span>
+              )}
+            </h1>
+            <p className="text-[11px] text-slate-400 font-mono truncate" title={currentUser?.id}>
+              ID: {currentUser?.id ? currentUser.id.slice(0, 8) + "..." : "Guest"}
+            </p>
+          </div>
+        </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1">
           {onSwitchUser && isDevMode && (
             <button
               onClick={onSwitchUser}
@@ -179,7 +138,7 @@ export default function Sidebar({
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-[#1e3a8a] hover:bg-[#f1eee7] transition-colors cursor-pointer"
           >
             <UserRound size={17} />
-            Profile
+            <span>Profile</span>
           </button>
         )}
 
@@ -190,7 +149,7 @@ export default function Sidebar({
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-[#1e3a8a] hover:bg-[#f1eee7] transition-colors cursor-pointer"
           >
             <Settings size={17} />
-            Settings
+            <span>Settings</span>
           </button>
         )}
       </div>

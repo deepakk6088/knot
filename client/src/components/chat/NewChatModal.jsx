@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   X,
@@ -6,65 +5,45 @@ import {
   Loader2,
   AlertCircle,
   Search,
-  User,
-  CheckCircle2
+  Check,
+  UserRound
 } from "lucide-react";
-
-import {
-  conversationApi,
-  userApi
-} from "../../services/api";
-
-import {
-  getInitials,
-  getAvatarColor
-} from "../../utils/formatters";
+import { conversationApi, userApi } from "../../services/api";
+import { getAvatarColor, getInitials } from "../../utils/formatters";
 
 export default function NewChatModal({
   isOpen,
   onClose,
   onConversationCreated
 }) {
-  const [query, setQuery] = useState("");
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
-
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  const handleSearch = async (event) => {
+    event.preventDefault();
 
-    const trimmedQuery = query.trim();
-
-    if (!trimmedQuery) {
-      setError("Enter a username or display name to search.");
-      return;
-    }
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) return;
 
     setIsSearching(true);
     setError("");
-    setUsers([]);
     setSelectedUser(null);
-    setHasSearched(false);
+    setHasSearched(true);
 
     try {
-      const res = await userApi.searchUsers(trimmedQuery);
-
-      if (res.success) {
-        setUsers(res.users || []);
-        setHasSearched(true);
-      } else {
-        setError(res.message || "Unable to search users.");
-      }
+      const response = await userApi.searchUsers(trimmedQuery);
+      setSearchResults(response || []);
     } catch (err) {
       setError(
         err.response?.data?.message ||
+        err.message ||
         "Unable to search users. Please try again."
       );
     } finally {
@@ -87,12 +66,13 @@ export default function NewChatModal({
         onConversationCreated(res.data);
         handleClose();
       } else {
-        setError(res.message || "Failed to create conversation.");
+        setError(res.error || "Failed to create conversation");
       }
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-        "Failed to start conversation. Please try again."
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to initiate conversation"
       );
     } finally {
       setIsCreating(false);
@@ -100,8 +80,8 @@ export default function NewChatModal({
   };
 
   const handleClose = () => {
-    setQuery("");
-    setUsers([]);
+    setSearchQuery("");
+    setSearchResults([]);
     setSelectedUser(null);
     setError("");
     setHasSearched(false);
@@ -143,133 +123,102 @@ export default function NewChatModal({
 
           <form onSubmit={handleSearch}>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-              Search Users
+              Find by Name or Username
             </label>
 
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+            <div className="relative flex items-center">
+              <Search
+                size={16}
+                className="absolute left-3.5 text-slate-400 pointer-events-none"
+              />
 
-                <input
-                  type="text"
-                  placeholder="Enter username or name..."
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setSelectedUser(null);
-                    setUsers([]);
-                    setHasSearched(false);
-                    setError("");
-                  }}
-                  className="w-full bg-white border border-[#ded8cb] rounded-2xl pl-10 pr-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] transition-all"
-                  autoFocus
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Type a username or display name..."
+                value={searchQuery}
+                onChange={(event) =>
+                  setSearchQuery(event.target.value)
+                }
+                autoFocus
+                className="w-full bg-[#ffffff] border border-[#ded8cb] rounded-2xl pl-10 pr-20 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] transition-all"
+              />
 
               <button
                 type="submit"
-                disabled={isSearching || !query.trim()}
-                className="flex items-center justify-center w-12 h-12 bg-[#1e3a8a] hover:bg-[#1e40af] text-white rounded-2xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Search users"
+                disabled={isSearching || !searchQuery.trim()}
+                className="absolute right-2 px-3 py-1.5 text-xs font-semibold bg-[#1e3a8a] hover:bg-[#1e40af] text-white rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? (
-                  <Loader2 size={17} className="animate-spin" />
+                  <Loader2 size={13} className="animate-spin" />
                 ) : (
-                  <Search size={17} />
+                  "Search"
                 )}
               </button>
             </div>
-
-            <p className="text-[11px] text-slate-400 mt-2">
-              Search by username or display name.
-            </p>
           </form>
 
-          {/* Search Results */}
-          {(users.length > 0 || hasSearched) && (
-            <div>
-              <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                Search Results
+          {/* Results */}
+          {hasSearched && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                Results ({searchResults.length})
               </p>
 
-              {users.length > 0 ? (
-                <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
-                  {users.map((user) => {
-                    const displayName =
+              {searchResults.length === 0 ? (
+                <div className="text-center py-6 text-slate-400 text-xs">
+                  No users found matching "{searchQuery}"
+                </div>
+              ) : (
+                <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 divide-y divide-[#ede8de]">
+                  {searchResults.map((user) => {
+                    const isSelected = selectedUser?.id === user.id;
+                    const name =
                       user.displayName || user.username;
-
-                    const avatarStyle = getAvatarColor(
-                      displayName
-                    );
-
-                    const isSelected =
-                      selectedUser?.id === user.id;
+                    const avatarStyle = getAvatarColor(name);
 
                     return (
                       <button
                         key={user.id}
                         type="button"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setError("");
-                        }}
-                        className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${
+                        onClick={() => setSelectedUser(user)}
+                        className={`w-full flex items-center gap-3 p-2.5 rounded-2xl text-left transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-[#e8edf7] border-[#1e3a8a]"
-                            : "bg-white border-[#e5dfd5] hover:bg-[#f5f1e8]"
+                            ? "bg-[#ede8de] ring-2 ring-[#1e3a8a]"
+                            : "hover:bg-[#f5f1e8]"
                         }`}
                       >
                         {user.avatarUrl ? (
                           <img
                             src={user.avatarUrl}
-                            alt={displayName}
-                            className="w-10 h-10 rounded-xl object-cover border border-[#ded8cb]"
+                            alt={name}
+                            className="w-10 h-10 rounded-2xl object-cover border border-[#ded8cb]"
                           />
                         ) : (
                           <div
-                            className={`w-10 h-10 rounded-xl ${avatarStyle.bg} ${avatarStyle.text} ${avatarStyle.border} border flex items-center justify-center text-xs font-bold`}
+                            className={`w-10 h-10 rounded-2xl ${avatarStyle.bg} ${avatarStyle.text} border ${avatarStyle.border} flex items-center justify-center font-bold text-xs shrink-0`}
                           >
-                            {getInitials(displayName)}
+                            {getInitials(name)}
                           </div>
                         )}
 
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-slate-800 truncate">
-                            {displayName}
+                            {user.displayName || user.username}
                           </p>
 
-                          <p className="text-xs text-slate-500 truncate">
+                          <p className="text-xs text-slate-400 truncate">
                             @{user.username}
                           </p>
                         </div>
 
                         {isSelected && (
-                          <CheckCircle2
-                            size={18}
-                            className="text-[#1e3a8a] shrink-0"
-                          />
+                          <div className="w-6 h-6 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center shrink-0">
+                            <Check size={14} />
+                          </div>
                         )}
                       </button>
                     );
                   })}
-                </div>
-              ) : (
-                <div className="text-center py-6 bg-white border border-dashed border-[#ded8cb] rounded-2xl">
-                  <User
-                    size={22}
-                    className="mx-auto text-slate-300 mb-2"
-                  />
-
-                  <p className="text-sm font-semibold text-slate-600">
-                    No users found
-                  </p>
-
-                  <p className="text-xs text-slate-400 mt-1">
-                    Try another username or display name.
-                  </p>
                 </div>
               )}
             </div>
