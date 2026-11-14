@@ -2,6 +2,7 @@ const messageService = require("../services/messageService");
 const conversationService = require("../services/conversationService");
 const prisma = require("../config/prisma");
 const { isUserOnline } = require("./presence");
+const { canTransition, buildReceiptPayload } = require("./reciepts");
 
 // In-memory deduplication cache to prevent duplicate persistence (e.g. rapid network retries)
 const recentMessagesCache = new Map();
@@ -179,15 +180,11 @@ function registerMessagingHandlers(io, socket) {
       // message state (id, conversationId, senderId, status = SENT).
       // Sent only to this socket — never to the room — so the sender can correlate
       // the persisted message with any optimistic/temp UI state using tempId.
-      socket.emit("message:sent", {
-        success: true,
-        messageId: message.id,
-        conversationId: message.conversationId,
+      socket.emit("message:sent", buildReceiptPayload(message, {
         senderId: message.senderId,
-        status: message.status,       // "SENT" — set by DB at creation
-        createdAt: message.createdAt,
-        tempId: messageTempId         // echoed back so the client can reconcile temp messages
-      });
+        success: true,
+        tempId: messageTempId   // echoed back so the client can reconcile temp messages
+      }));
 
       // ── DELIVERED receipt ────────────────────────────────────────────────────
       // A message is DELIVERED when it reaches an actively connected recipient.
@@ -196,9 +193,12 @@ function registerMessagingHandlers(io, socket) {
       // This avoids marking messages delivered for offline recipients who will
       // receive the message only when they reconnect.
       //
+      // Lifecycle guard: only attempt DELIVERED if the message is currently SENT.
+      // If the recipient read the message nearly instantly the status may already
+      // be READ by the time this IIFE runs — canTransition prevents regression.
+      //
       // The DB update runs asynchronously — it must not block the sender's ack.
-      // Guard: skip if the recipient is offline or not identifiable.
-      if (recipientId && isUserOnline(recipientId)) {
+      if (recipientId && isUserOnline(recipientId) && canTransition(message.status, "DELIVERED")) {
         // Fire-and-forget: errors are logged but must not surface to the sender
         // as a failure of the send operation itself.
         (async () => {
@@ -209,18 +209,17 @@ function registerMessagingHandlers(io, socket) {
               status: "DELIVERED"
             });
 
-            // Notify the sender (all their tabs) that the message was delivered.
-            // Skip if deliveredAt was already set (updateMessageStatus is idempotent;
-            // the returned object reflects the actual DB state).
-            io.to(senderId).emit("message:delivered", {
-              messageId: delivered.id,
-              conversationId: delivered.conversationId,
-              recipientId,
-              status: delivered.status,          // "DELIVERED"
-              deliveredAt: delivered.deliveredAt  // timestamptz from DB
-            });
-
-            console.log(`[Socket] Message ${delivered.id} marked DELIVERED for recipient ${recipientId}`);
+            // Only emit if the DB actually moved the status forward to DELIVERED.
+            // If the status is already READ (race condition: user read instantly),
+            // we skip the receipt — the READ receipt will (or already did) cover it.
+            if (delivered.status === "DELIVERED") {
+              io.to(senderId).emit("message:delivered", buildReceiptPayload(delivered, {
+                recipientId
+              }));
+              console.log(`[Socket] Message ${delivered.id} marked DELIVERED for recipient ${recipientId}`);
+            } else {
+              console.log(`[Socket] Message ${delivered.id} skipped DELIVERED emit — current status: ${delivered.status}`);
+            }
           } catch (err) {
             // Non-fatal: log but do not propagate. The message was persisted and
             // broadcast; delivery status will be reconciled on next connection.
