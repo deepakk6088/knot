@@ -1,6 +1,7 @@
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const { registerSocketHandlers } = require("./handlers");
+const { handleUserConnected, handleUserDisconnected } = require("./presence");
 
 let io = null;
 
@@ -74,13 +75,19 @@ function initSocket(httpServer) {
       // Join user's personal room using their authenticated ID
       socket.join(userId);
       console.log(`Socket connected: ${socket.id} (User ID: ${userId})`);
+
+      // Track online presence (broadcasts presence:online if first connection)
+      handleUserConnected(io, socket);
     }
 
-    // Register modular socket event handlers (conversation rooms, real-time messaging)
+    // Register modular socket event handlers (conversation rooms, real-time messaging, presence)
     registerSocketHandlers(io, socket);
 
     socket.on("disconnect", (reason) => {
       console.log(`Socket disconnected: ${socket.id} (User ID: ${userId}, Reason: ${reason})`);
+
+      // Track offline presence and update lastSeenAt if last socket connection
+      handleUserDisconnected(io, socket, reason);
     });
   });
 

@@ -1,4 +1,5 @@
 const { registerMessagingHandlers } = require("./messaging");
+const { registerPresenceHandlers } = require("./presence");
 
 /**
  * Registers all socket event handlers for an authenticated client socket.
@@ -9,6 +10,9 @@ const { registerMessagingHandlers } = require("./messaging");
 function registerSocketHandlers(io, socket) {
   // Register conversation rooms & real-time messaging
   registerMessagingHandlers(io, socket);
+
+  // Register online/offline presence handlers
+  registerPresenceHandlers(io, socket);
 }
 
 module.exports = {
