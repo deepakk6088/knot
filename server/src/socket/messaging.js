@@ -202,3 +202,5 @@ function registerMessagingHandlers(io, socket) {
 module.exports = {
   registerMessagingHandlers
 };
+
+//// Implemented real time messaging
