@@ -1,6 +1,7 @@
 const messageService = require("../services/messageService");
 const conversationService = require("../services/conversationService");
 const prisma = require("../config/prisma");
+const { isUserOnline } = require("./presence");
 
 // In-memory deduplication cache to prevent duplicate persistence (e.g. rapid network retries)
 const recentMessagesCache = new Map();
@@ -187,6 +188,47 @@ function registerMessagingHandlers(io, socket) {
         createdAt: message.createdAt,
         tempId: messageTempId         // echoed back so the client can reconcile temp messages
       });
+
+      // ── DELIVERED receipt ────────────────────────────────────────────────────
+      // A message is DELIVERED when it reaches an actively connected recipient.
+      // We know the recipient has at least one live socket (checked via the
+      // existing presence tracker) because message:receive was just broadcast.
+      // This avoids marking messages delivered for offline recipients who will
+      // receive the message only when they reconnect.
+      //
+      // The DB update runs asynchronously — it must not block the sender's ack.
+      // Guard: skip if the recipient is offline or not identifiable.
+      if (recipientId && isUserOnline(recipientId)) {
+        // Fire-and-forget: errors are logged but must not surface to the sender
+        // as a failure of the send operation itself.
+        (async () => {
+          try {
+            const delivered = await messageService.updateMessageStatus({
+              messageId: message.id,
+              userId: recipientId,          // authorization: recipient must be a participant
+              status: "DELIVERED"
+            });
+
+            // Notify the sender (all their tabs) that the message was delivered.
+            // Skip if deliveredAt was already set (updateMessageStatus is idempotent;
+            // the returned object reflects the actual DB state).
+            io.to(senderId).emit("message:delivered", {
+              messageId: delivered.id,
+              conversationId: delivered.conversationId,
+              recipientId,
+              status: delivered.status,          // "DELIVERED"
+              deliveredAt: delivered.deliveredAt  // timestamptz from DB
+            });
+
+            console.log(`[Socket] Message ${delivered.id} marked DELIVERED for recipient ${recipientId}`);
+          } catch (err) {
+            // Non-fatal: log but do not propagate. The message was persisted and
+            // broadcast; delivery status will be reconciled on next connection.
+            console.error(`[Socket] Failed to mark message ${message.id} as DELIVERED:`, err.message);
+          }
+        })();
+      }
+      // ────────────────────────────────────────────────────────────────────────
 
       // Return success acknowledgement to sender (callback path, if provided)
       if (typeof callback === "function") {
