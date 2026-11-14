@@ -2,6 +2,7 @@ const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const { registerSocketHandlers } = require("./handlers");
 const { handleUserConnected, handleUserDisconnected } = require("./presence");
+const { handleTypingCleanupOnDisconnect } = require("./typing");
 
 let io = null;
 
@@ -85,6 +86,9 @@ function initSocket(httpServer) {
 
     socket.on("disconnect", (reason) => {
       console.log(`Socket disconnected: ${socket.id} (User ID: ${userId}, Reason: ${reason})`);
+
+      // Clean up stale typing indicators before presence update
+      handleTypingCleanupOnDisconnect(io, socket);
 
       // Track offline presence and update lastSeenAt if last socket connection
       handleUserDisconnected(io, socket, reason);
