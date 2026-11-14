@@ -2,7 +2,7 @@ const messageService = require("../services/messageService");
 const conversationService = require("../services/conversationService");
 const prisma = require("../config/prisma");
 const { isUserOnline } = require("./presence");
-const { canTransition, buildReceiptPayload } = require("./reciepts");
+const { canTransition, buildReceiptPayload, isValidUUID } = require("./reciepts");
 
 // In-flight delivery-sync guard.
 // Set<"userId:conversationId"> — prevents a second socket for the same user
@@ -48,6 +48,12 @@ function registerMessagingHandlers(io, socket) {
     }
 
     const trimmedConvId = conversationId.trim();
+
+    if (!isValidUUID(trimmedConvId)) {
+      const errorResponse = { success: false, error: "Invalid conversationId: must be a valid UUID", statusCode: 400 };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("conversation:error", errorResponse);
+    }
 
     try {
       // Authorize: Verify that the conversation exists and that the user is a participant
@@ -145,6 +151,12 @@ function registerMessagingHandlers(io, socket) {
     }
 
     const trimmedConvId = conversationId.trim();
+
+    if (!isValidUUID(trimmedConvId)) {
+      const errorResponse = { success: false, error: "Invalid conversationId: must be a valid UUID", statusCode: 400 };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("conversation:error", errorResponse);
+    }
     socket.leave(trimmedConvId);
     console.log(`[Socket] Socket ${socket.id} left room: ${trimmedConvId}`);
 
@@ -187,7 +199,17 @@ function registerMessagingHandlers(io, socket) {
     }
 
     const trimmedConvId = conversationId.trim();
-    const trimmedContent = content.trim();
+
+    if (!isValidUUID(trimmedConvId)) {
+      const errorResponse = {
+        success: false,
+        error: "Invalid conversationId: must be a valid UUID",
+        statusCode: 400,
+        tempId: messageTempId
+      };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
 
     // Deduplication check: prevent duplicate DB insertion if client retries with the same clientTempId
     const dedupKey = messageTempId
@@ -325,7 +347,7 @@ function registerMessagingHandlers(io, socket) {
     const readerId = socket.user?.id;
 
     if (!readerId) {
-      const errorResponse = { success: false, error: "Unauthorized: Authentication required" };
+      const errorResponse = { success: false, error: "Unauthorized: Authentication required", statusCode: 401 };
       if (typeof callback === "function") return callback(errorResponse);
       return socket.emit("message:error", errorResponse);
     }
@@ -333,14 +355,89 @@ function registerMessagingHandlers(io, socket) {
     const conversationId = typeof data === "string" ? data : data?.conversationId;
 
     if (!conversationId || typeof conversationId !== "string" || !conversationId.trim()) {
-      const errorResponse = { success: false, error: "conversationId is required" };
+      const errorResponse = { success: false, error: "conversationId is required", statusCode: 400 };
       if (typeof callback === "function") return callback(errorResponse);
       return socket.emit("message:error", errorResponse);
     }
 
     const trimmedConvId = conversationId.trim();
 
+    if (!isValidUUID(trimmedConvId)) {
+      const errorResponse = { success: false, error: "Invalid conversationId: must be a valid UUID", statusCode: 400 };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+
     try {
+      // Optional single messageId support
+      const messageId = typeof data === "object" ? data?.messageId : null;
+      if (messageId && typeof messageId === "string" && messageId.trim()) {
+        const trimmedMsgId = messageId.trim();
+        if (!isValidUUID(trimmedMsgId)) {
+          const errorResponse = { success: false, error: "Invalid messageId: must be a valid UUID", statusCode: 400 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        const existingMessage = await prisma.message.findUnique({
+          where: { id: trimmedMsgId },
+          include: { conversation: true }
+        });
+
+        if (!existingMessage) {
+          const errorResponse = { success: false, error: "Message not found", statusCode: 404 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        if (existingMessage.conversationId !== trimmedConvId) {
+          const errorResponse = { success: false, error: "Message does not belong to specified conversation", statusCode: 400 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        if (existingMessage.conversation.userOneId !== readerId && existingMessage.conversation.userTwoId !== readerId) {
+          const errorResponse = { success: false, error: "Access denied: You are not a participant in this conversation", statusCode: 403 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        if (existingMessage.senderId === readerId) {
+          const errorResponse = { success: false, error: "Cannot mark your own message as read", statusCode: 400 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        // Idempotency: if already READ, return early without duplicate broadcast
+        if (existingMessage.status === "READ") {
+          if (typeof callback === "function") {
+            return callback({ success: true, messageId: trimmedMsgId, status: "READ", alreadyRead: true });
+          }
+          return;
+        }
+
+        const updated = await messageService.updateMessageStatus({
+          messageId: trimmedMsgId,
+          userId: readerId,
+          status: "READ"
+        });
+
+        if (typeof callback === "function") {
+          callback({ success: true, messageId: trimmedMsgId, status: "READ" });
+        }
+
+        io.to(existingMessage.senderId).emit("message:read", {
+          conversationId: trimmedConvId,
+          readerId,
+          messageIds: [trimmedMsgId],
+          status: "READ",
+          readAt: updated.readAt
+        });
+
+        console.log(`[Socket] Single message ${trimmedMsgId} marked READ by user ${readerId}`);
+        return;
+      }
+
       // markConversationAsRead internally verifies conversation existence and
       // that readerId is a participant (throws 403/404 otherwise).
       // It updates only messages where senderId ≠ readerId and status ≠ READ.
@@ -349,21 +446,17 @@ function registerMessagingHandlers(io, socket) {
         userId: readerId
       });
 
-      // Acknowledge to the reader regardless of whether anything was updated.
-      if (typeof callback === "function") {
-        callback({ success: true, conversationId: trimmedConvId, updatedCount });
-      }
-
       // If nothing was updated there is no receipt to broadcast — the sender
       // already knows these messages are READ, or there were no eligible messages.
       if (updatedCount === 0) {
+        if (typeof callback === "function") {
+          return callback({ success: true, conversationId: trimmedConvId, updatedCount: 0 });
+        }
         return;
       }
 
       // Fetch the IDs and readAt of the messages we just marked READ so the
       // sender receives an accurate, specific receipt payload.
-      // We use the same timestamp window (last second) to scope the query tightly.
-      const readAt = new Date();
       const updatedMessages = await prisma.message.findMany({
         where: {
           conversationId: trimmedConvId,
@@ -371,20 +464,24 @@ function registerMessagingHandlers(io, socket) {
           status: "READ"
         },
         select: { id: true, senderId: true, readAt: true },
-        orderBy: { createdAt: "desc" },
+        orderBy: { readAt: "desc" },
         take: updatedCount  // limit to exactly what was just updated
       });
+
+      // Acknowledge to the reader after successful DB operations
+      const messageIds = updatedMessages.map((m) => m.id);
+      if (typeof callback === "function") {
+        callback({ success: true, conversationId: trimmedConvId, updatedCount, messageIds });
+      }
 
       // Derive the sender from the updated message rows — all updated messages
       // share the same senderId (the other participant in a 1-to-1 conversation).
       const otherUserId = updatedMessages.length > 0 ? updatedMessages[0].senderId : null;
 
-      // Use the most recent readAt from the DB rows; fall back to now().
+      // Use the confirmed readAt timestamp from the DB rows
       const confirmedReadAt = (updatedMessages.length > 0 && updatedMessages[0].readAt)
         ? updatedMessages[0].readAt
-        : readAt;
-
-      const messageIds = updatedMessages.map((m) => m.id);
+        : new Date();
 
       // Notify the original sender (all their tabs) that their messages were read.
       if (otherUserId) {
@@ -409,6 +506,137 @@ function registerMessagingHandlers(io, socket) {
         statusCode
       };
 
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+  });
+
+  // 5. Mark Message as Delivered
+  //
+  // Client emits this event when an incoming message is received/processed by the recipient.
+  // Supports acknowledging a single message ({ messageId, conversationId }) or an entire
+  // conversation ({ conversationId }).
+  socket.on("message:delivered", async (data, callback) => {
+    const recipientId = socket.user?.id;
+
+    if (!recipientId) {
+      const errorResponse = { success: false, error: "Unauthorized: Authentication required", statusCode: 401 };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+
+    const { messageId, conversationId } = data || {};
+
+    if (!conversationId || typeof conversationId !== "string" || !conversationId.trim()) {
+      const errorResponse = { success: false, error: "conversationId is required", statusCode: 400 };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+
+    const trimmedConvId = conversationId.trim();
+
+    if (!isValidUUID(trimmedConvId)) {
+      const errorResponse = { success: false, error: "Invalid conversationId: must be a valid UUID", statusCode: 400 };
+      if (typeof callback === "function") return callback(errorResponse);
+      return socket.emit("message:error", errorResponse);
+    }
+
+    try {
+      if (messageId && typeof messageId === "string" && messageId.trim()) {
+        const trimmedMsgId = messageId.trim();
+
+        if (!isValidUUID(trimmedMsgId)) {
+          const errorResponse = { success: false, error: "Invalid messageId: must be a valid UUID", statusCode: 400 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        const existingMessage = await prisma.message.findUnique({
+          where: { id: trimmedMsgId },
+          include: { conversation: true }
+        });
+
+        if (!existingMessage) {
+          const errorResponse = { success: false, error: "Message not found", statusCode: 404 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        if (existingMessage.conversationId !== trimmedConvId) {
+          const errorResponse = { success: false, error: "Message does not belong to specified conversation", statusCode: 400 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        if (existingMessage.conversation.userOneId !== recipientId && existingMessage.conversation.userTwoId !== recipientId) {
+          const errorResponse = { success: false, error: "Access denied: You are not a participant in this conversation", statusCode: 403 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        if (existingMessage.senderId === recipientId) {
+          const errorResponse = { success: false, error: "Cannot mark your own message as delivered", statusCode: 400 };
+          if (typeof callback === "function") return callback(errorResponse);
+          return socket.emit("message:error", errorResponse);
+        }
+
+        // Idempotency: if already DELIVERED or READ, return without re-broadcasting
+        if (existingMessage.status === "DELIVERED" || existingMessage.status === "READ") {
+          if (typeof callback === "function") {
+            return callback({ success: true, messageId: trimmedMsgId, status: existingMessage.status, alreadyDelivered: true });
+          }
+          return;
+        }
+
+        const delivered = await messageService.updateMessageStatus({
+          messageId: trimmedMsgId,
+          userId: recipientId,
+          status: "DELIVERED"
+        });
+
+        io.to(existingMessage.senderId).emit("message:delivered", buildReceiptPayload(delivered, {
+          recipientId
+        }));
+
+        if (typeof callback === "function") {
+          return callback({ success: true, messageId: trimmedMsgId, status: delivered.status });
+        }
+      } else {
+        const deliveredMessages = await messageService.markConversationAsDelivered({
+          conversationId: trimmedConvId,
+          recipientId
+        });
+
+        if (typeof callback === "function") {
+          callback({ success: true, conversationId: trimmedConvId, updatedCount: deliveredMessages.length });
+        }
+
+        if (deliveredMessages.length > 0) {
+          const bySender = new Map();
+          for (const msg of deliveredMessages) {
+            if (!bySender.has(msg.senderId)) bySender.set(msg.senderId, []);
+            bySender.get(msg.senderId).push(msg);
+          }
+
+          for (const [senderId, msgs] of bySender) {
+            io.to(senderId).emit("message:delivered", {
+              conversationId: trimmedConvId,
+              recipientId,
+              messageIds: msgs.map((m) => m.id),
+              status: "DELIVERED",
+              deliveredAt: msgs[0].deliveredAt
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`[Socket] Error handling message:delivered in conversation ${trimmedConvId}:`, error);
+      const statusCode = error.statusCode || 500;
+      const errorResponse = {
+        success: false,
+        error: error.message || "Failed to mark message as delivered",
+        statusCode
+      };
       if (typeof callback === "function") return callback(errorResponse);
       return socket.emit("message:error", errorResponse);
     }
