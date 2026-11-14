@@ -173,7 +173,22 @@ function registerMessagingHandlers(io, socket) {
 
       console.log(`[Socket] Message ${message.id} broadcast to conversation ${trimmedConvId} by user ${senderId}`);
 
-      // Return success acknowledgement to sender
+      // Emit a targeted 'message:sent' acknowledgement to the sender socket only.
+      // This confirms successful DB persistence and carries the authoritative server
+      // message state (id, conversationId, senderId, status = SENT).
+      // Sent only to this socket — never to the room — so the sender can correlate
+      // the persisted message with any optimistic/temp UI state using tempId.
+      socket.emit("message:sent", {
+        success: true,
+        messageId: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        status: message.status,       // "SENT" — set by DB at creation
+        createdAt: message.createdAt,
+        tempId: messageTempId         // echoed back so the client can reconcile temp messages
+      });
+
+      // Return success acknowledgement to sender (callback path, if provided)
       if (typeof callback === "function") {
         return callback({
           success: true,
