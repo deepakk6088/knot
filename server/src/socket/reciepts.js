@@ -2,12 +2,12 @@
  * Receipt lifecycle utilities for KNOT message receipts.
  *
  * Enforces the strict SENT → DELIVERED → READ status progression and
- * provides a consistent payload builder used by all three receipt events.
+ * provides a consistent payload builder used by all receipt events.
  *
  * Rules:
  *   - Status may only move forward: SENT → DELIVERED → READ
- *   - Any backward or lateral move (e.g. READ → DELIVERED) is rejected
- *   - Equal transitions (DELIVERED → DELIVERED) are treated as no-ops
+ *   - Any backward move (e.g. READ → DELIVERED, READ → SENT, DELIVERED → SENT) is rejected
+ *   - Equal transitions (DELIVERED → DELIVERED, READ → READ) are treated as idempotent no-ops
  */
 
 // Numeric rank for each status — higher rank = further along the lifecycle.
@@ -16,6 +16,20 @@ const STATUS_RANK = {
   DELIVERED: 1,
   READ: 2
 };
+
+const VALID_STATUSES = ["SENT", "DELIVERED", "READ"];
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Validates whether the given value is a valid UUID string.
+ *
+ * @param {any} id - Value to check
+ * @returns {boolean}
+ */
+function isValidUUID(id) {
+  return typeof id === "string" && UUID_REGEX.test(id.trim());
+}
 
 /**
  * Returns true only when transitioning to a strictly higher status rank.
@@ -66,7 +80,9 @@ function buildReceiptPayload(message, extra = {}) {
 }
 
 module.exports = {
+  STATUS_RANK,
+  VALID_STATUSES,
+  isValidUUID,
   canTransition,
-  buildReceiptPayload,
-  STATUS_RANK
+  buildReceiptPayload
 };
