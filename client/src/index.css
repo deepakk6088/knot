@@ -1,19 +1,197 @@
+
 @import "tailwindcss";
+
+:root {
+  --app-bg: #f5f3ee;
+  --app-surface: #fbf9f5;
+  --app-surface-alt: #f1eee7;
+  --app-border: #e5dfd5;
+  --app-text: #1e293b;
+  --app-heading: #0f172a;
+  --app-muted: #64748b;
+  --app-accent: #1e3a8a;
+  --app-accent-hover: #1e40af;
+  --app-accent-soft: #bfd0f0;
+  --app-input: #ffffff;
+}
 
 * {
   box-sizing: border-box;
 }
 
-body {
+html, body, #root {
+  min-height: 100%;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #f5f3ee;
-  color: #1e293b;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--app-bg);
+  color: var(--app-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 ::selection {
-  background-color: #1e3a8a;
-  color: #fbf9f5;
+  background-color: var(--app-accent);
+  color: var(--app-surface);
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+/* Main application backgrounds */
+:where([class*="bg-[#f5f3ee]"]) {
+  background-color: var(--app-bg) !important;
+}
+
+/* Surfaces and cards */
+:where(
+  [class*="bg-[#fbf9f5]"],
+  [class*="bg-[#fdfcf9]"],
+  [class*="bg-white"],
+  [class*="bg-[#ffffff]"]
+) {
+  background-color: var(--app-surface) !important;
+}
+
+/* Secondary surfaces */
+:where(
+  [class*="bg-[#f5f1e8]"],
+  [class*="bg-[#f1eee7]"],
+  [class*="bg-[#ede8de]"],
+  [class*="bg-[#e5dfd5]"]
+) {
+  background-color: var(--app-surface-alt) !important;
+}
+
+/* Accent backgrounds */
+:where([class*="bg-[#1e3a8a]"]) {
+  background-color: var(--app-accent) !important;
+}
+
+:where([class*="bg-[#1e40af]"]) {
+  background-color: var(--app-accent-hover) !important;
+}
+
+/* Soft accent backgrounds */
+:where(
+  [class*="bg-[#edf2ea]"],
+  [class*="bg-[#e8edf7]"],
+  [class*="bg-[#bfd0f0]"]
+) {
+  background-color: var(--app-accent-soft) !important;
+}
+
+/* Hover backgrounds */
+:where([class*="hover:bg-[#ede8de]"]):hover,
+:where([class*="hover:bg-[#f1eee7]"]):hover {
+  background-color: var(--app-surface-alt) !important;
+}
+
+:where([class*="hover:bg-[#1e40af]"]):hover {
+  background-color: var(--app-accent-hover) !important;
+}
+
+/* Borders */
+:where(
+  [class*="border-[#e5dfd5]"],
+  [class*="border-[#ded8cb]"],
+  [class*="border-[#e2ddd3]"],
+  [class*="border-[#ede8de]"],
+  [class*="border-[#c8d8c3]"]
+) {
+  border-color: var(--app-border) !important;
+}
+
+:where(
+  [class*="border-[#bfd0f0]"],
+  [class*="border-[#1e3a8a]"]
+) {
+  border-color: var(--app-accent) !important;
+}
+
+/* Text colors */
+:where(
+  [class~="text-slate-900"],
+  [class~="text-slate-800"]
+) {
+  color: var(--app-heading) !important;
+}
+
+:where(
+  [class~="text-slate-700"],
+  [class~="text-slate-600"]
+) {
+  color: var(--app-text) !important;
+}
+
+:where(
+  [class~="text-slate-500"],
+  [class~="text-slate-400"]
+) {
+  color: var(--app-muted) !important;
+}
+
+:where(
+  [class*="text-[#1e3a8a]"],
+  [class*="text-[#34452e]"]
+) {
+  color: var(--app-accent) !important;
+}
+
+:where([class*="text-[#fbf9f5]"]) {
+  color: var(--app-surface) !important;
+}
+
+/* Hover text */
+:where([class*="hover:text-[#1e3a8a]"]):hover {
+  color: var(--app-accent) !important;
+}
+
+/* Inputs */
+:where(input, textarea, select) {
+  color: var(--app-text);
+}
+
+:where([class*="focus:border-[#1e3a8a]"]):focus {
+  border-color: var(--app-accent) !important;
+}
+
+:where([class*="focus:ring-[#bfd0f0]"]):focus {
+  --tw-ring-color: var(--app-accent-soft) !important;
+}
+
+/* Selected conversation */
+:where(
+  [class*="bg-[#ede8de]"][class*="border-l-[3.5px]"]
+) {
+  background-color: var(--app-accent-soft) !important;
+  border-left-color: var(--app-accent) !important;
+}
+
+/* Sent message bubbles */
+:where([class*="bg-[#1e40af]"]) {
+  background-color: var(--app-accent) !important;
+  color: #ffffff !important;
+}
+
+/* Received message bubbles */
+:where([class*="bg-[#ffffff]"]) {
+  background-color: var(--app-surface-alt) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+
+/* Sent message timestamps and status icons */
+:where([class*="text-[#c7d7f7]"]) {
+  color: #ffffff !important;
+  opacity: 0.8;
+}
+
+:where([class*="text-[#bfd0f0]"]) {
+  color: #ffffff !important;
 }
