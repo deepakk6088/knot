@@ -56,6 +56,13 @@ export function AuthProvider({ children }) {
         setToken(authToken);
     }
 
+    function updateUser(updatedUser) {
+        setUser((currentUser) => ({
+            ...currentUser,
+            ...updatedUser
+        }));
+    }
+
     function logout() {
         localStorage.removeItem("knot_token");
 
@@ -69,6 +76,7 @@ export function AuthProvider({ children }) {
         loading,
         isAuthenticated: Boolean(token && user),
         setSession,
+        updateUser,
         logout
     };
 

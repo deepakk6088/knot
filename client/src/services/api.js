@@ -41,6 +41,14 @@ export const userApi = {
   }
 };
 
+// Profile APIs (Member 1)
+export const profileApi = {
+  updateProfile: async (profileData) => {
+    const res = await api.patch("/users/me", profileData);
+    return res.data;
+  }
+};
+
 // Conversation APIs (Member 2)
 export const conversationApi = {
   getConversations: async () => {
