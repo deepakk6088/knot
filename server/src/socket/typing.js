@@ -35,6 +35,16 @@ async function handleTypingStart(io, socket, data, callback) {
 
   const trimmedConvId = conversationId.trim();
 
+  // Idempotency guard: if this socket is already marked as typing in this
+  // conversation, suppress the duplicate broadcast and DB round-trip.
+  const existingState = socketTypingState.get(socket.id);
+  if (existingState && existingState.has(trimmedConvId)) {
+    if (typeof callback === "function") {
+      return callback({ success: true, conversationId: trimmedConvId, duplicate: true });
+    }
+    return;
+  }
+
   try {
     // Reuses existing conversation authorization logic (verifies existence & participant membership)
     await conversationService.getConversationById(trimmedConvId, userId);
@@ -102,6 +112,17 @@ async function handleTypingStop(io, socket, data, callback) {
   }
 
   const trimmedConvId = conversationId.trim();
+
+  // Idempotency guard: if this socket is not marked as typing in this
+  // conversation, there is nothing to stop — suppress the redundant DB
+  // round-trip and broadcast.
+  const existingState = socketTypingState.get(socket.id);
+  if (!existingState || !existingState.has(trimmedConvId)) {
+    if (typeof callback === "function") {
+      return callback({ success: true, conversationId: trimmedConvId, duplicate: true });
+    }
+    return;
+  }
 
   try {
     // Reuses existing conversation authorization logic (verifies existence & participant membership)
