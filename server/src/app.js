@@ -64,7 +64,10 @@ app.use((err, req, res, next) => {
 
   res.status(statusCode).json({
     success: false,
-    message
+    message,
+    ...(err.code === "EMAIL_NOT_VERIFIED"
+      ? { code: err.code }
+      : {})
   });
 });
 
