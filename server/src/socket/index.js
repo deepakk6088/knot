@@ -1,5 +1,6 @@
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
+const { registerSocketHandlers } = require("./handlers");
 
 let io = null;
 
@@ -74,6 +75,9 @@ function initSocket(httpServer) {
       socket.join(userId);
       console.log(`Socket connected: ${socket.id} (User ID: ${userId})`);
     }
+
+    // Register modular socket event handlers (conversation rooms, real-time messaging)
+    registerSocketHandlers(io, socket);
 
     socket.on("disconnect", (reason) => {
       console.log(`Socket disconnected: ${socket.id} (User ID: ${userId}, Reason: ${reason})`);
