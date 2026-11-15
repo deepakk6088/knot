@@ -111,6 +111,70 @@ export default function ChatWindow({ conversation, currentUserId, otherPresence 
     };
   }, [conversation?.id]);
 
+  // ── Receipt status update listeners ─────────────────────────────────────────
+  // Apply SENT / DELIVERED / READ status updates to the message list in-place.
+  // Status rank: SENT (0) → DELIVERED (1) → READ (2).
+  // An incoming receipt is applied only when the new status is strictly higher
+  // than the current status stored in state, preventing backward regressions.
+  useEffect(() => {
+    if (!conversation?.id) return;
+
+    const STATUS_RANK = { SENT: 0, DELIVERED: 1, READ: 2 };
+
+    // Helper: applies a new status to all matching message IDs in state.
+    // Skips any message whose current status is already equal or ahead.
+    const applyStatusUpdate = (messageIds, newStatus) => {
+      if (!Array.isArray(messageIds) || messageIds.length === 0) return;
+
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (!messageIds.includes(m.id)) return m;
+          const currentRank = STATUS_RANK[m.status] ?? -1;
+          const newRank = STATUS_RANK[newStatus] ?? -1;
+          if (newRank <= currentRank) return m; // never regress
+          return { ...m, status: newStatus };
+        })
+      );
+    };
+
+    // message:sent — server push to the sender's own socket.
+    // Payload: { messageId, conversationId, status, senderId, tempId, ... }
+    // This fires alongside the callback ack. It carries the authoritative DB
+    // status (always "SENT") and can be used to reconcile any temp message
+    // that slipped through without being replaced by the callback path.
+    const handleMessageSent = (data) => {
+      if (!data || !data.messageId || data.conversationId !== conversation.id) return;
+      applyStatusUpdate([data.messageId], "SENT");
+    };
+
+    // message:delivered — server emits to the sender's personal room (all tabs)
+    // when the recipient's socket receives/processes the message.
+    // Payload: { conversationId, recipientId, messageIds: string[], status: "DELIVERED", deliveredAt }
+    const handleMessageDelivered = (data) => {
+      if (!data || data.conversationId !== conversation.id) return;
+      applyStatusUpdate(data.messageIds, "DELIVERED");
+    };
+
+    // message:read — server emits to the sender's personal room when the
+    // recipient marks the conversation as read.
+    // Payload: { conversationId, readerId, messageIds: string[], status: "READ", readAt }
+    const handleMessageRead = (data) => {
+      if (!data || data.conversationId !== conversation.id) return;
+      applyStatusUpdate(data.messageIds, "READ");
+    };
+
+    socketService.on("message:sent", handleMessageSent);
+    socketService.on("message:delivered", handleMessageDelivered);
+    socketService.on("message:read", handleMessageRead);
+
+    return () => {
+      socketService.off("message:sent", handleMessageSent);
+      socketService.off("message:delivered", handleMessageDelivered);
+      socketService.off("message:read", handleMessageRead);
+    };
+  }, [conversation?.id]);
+  // ────────────────────────────────────────────────────────────────────────────
+
   // Clean up user's own typing emission when switching conversations or unmounting
   useEffect(() => {
     return () => {
