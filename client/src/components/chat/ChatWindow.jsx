@@ -65,8 +65,20 @@ export default function ChatWindow({ conversation, currentUserId, otherPresence 
   useEffect(() => {
     if (!conversation?.id) return;
 
-    // Join the current conversation room
+    // Join the current conversation room on mount and each time the conversation changes.
+    // The backend room membership is per-socket-connection, so it must be re-established
+    // whenever the socket reconnects. The "connect" listener below handles that case.
     socketService.emit("conversation:join", { conversationId: conversation.id });
+
+    // Re-join the conversation room on every socket reconnection.
+    // Socket.IO's auto-reconnect creates a new socket session on the server side, which
+    // means all previously joined rooms are lost. Re-emitting "conversation:join" restores
+    // room membership without duplicating it (the backend guards against double-joins).
+    const handleReconnect = () => {
+      socketService.emit("conversation:join", { conversationId: conversation.id });
+    };
+
+    socketService.on("connect", handleReconnect);
 
     const handleMessageReceive = (incomingMsg) => {
       if (!incomingMsg || !incomingMsg.id) return;
@@ -106,6 +118,7 @@ export default function ChatWindow({ conversation, currentUserId, otherPresence 
     socketService.on("message:receive", handleMessageReceive);
 
     return () => {
+      socketService.off("connect", handleReconnect);
       socketService.off("message:receive", handleMessageReceive);
       socketService.emit("conversation:leave", { conversationId: conversation.id });
     };

@@ -80,6 +80,39 @@ export function connect(explicitToken = null) {
 
   socket.on("disconnect", (reason) => {
     console.log(`[SocketService] Disconnected: ${reason}`);
+
+    // Socket.IO client auto-reconnects for transient drops (transport close, ping timeout).
+    // However, if the SERVER explicitly disconnected this socket (e.g., after a server
+    // restart or forced eviction), Socket.IO client stops reconnecting by default.
+    // In that case, attempt manual reconnection — but only while a valid token is
+    // still present, so unauthenticated users are never accidentally reconnected.
+    if (reason === "io server disconnect") {
+      const tokenStillValid =
+        currentToken && typeof localStorage !== "undefined"
+          ? localStorage.getItem("knot_token") === currentToken
+          : Boolean(currentToken);
+
+      if (tokenStillValid) {
+        console.log("[SocketService] Server-initiated disconnect — attempting reconnect");
+        socket.connect();
+      }
+    }
+  });
+
+  socket.on("reconnect", (attemptNumber) => {
+    console.log(`[SocketService] Reconnected after ${attemptNumber} attempt(s)`);
+  });
+
+  socket.on("reconnect_attempt", (attemptNumber) => {
+    console.log(`[SocketService] Reconnect attempt #${attemptNumber}…`);
+  });
+
+  socket.on("reconnect_error", (error) => {
+    console.error("[SocketService] Reconnect error:", error.message);
+  });
+
+  socket.on("reconnect_failed", () => {
+    console.error("[SocketService] All reconnection attempts exhausted");
   });
 
   return socket;
@@ -114,6 +147,21 @@ export function getSocket() {
  */
 export function isConnected() {
   return Boolean(socket && socket.connected);
+}
+
+/**
+ * Returns a string describing the current connection state:
+ *   "connected"    — socket is active and connected
+ *   "reconnecting" — socket is in the reconnection backoff loop
+ *   "disconnected" — socket is not connected and not attempting to reconnect
+ *
+ * @returns {"connected" | "reconnecting" | "disconnected"}
+ */
+export function getConnectionState() {
+  if (!socket) return "disconnected";
+  if (socket.connected) return "connected";
+  if (socket.active) return "reconnecting"; // socket.active is true during auto-reconnect
+  return "disconnected";
 }
 
 /**
@@ -192,6 +240,7 @@ const socketService = {
   disconnect,
   getSocket,
   isConnected,
+  getConnectionState,
   on,
   off,
   once,
