@@ -18,13 +18,24 @@ export default function MessageInput({ onSendMessage, disabled }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
 
-    onSendMessage(trimmed);
+    const previousText = trimmed;
     setText("");
+
+    try {
+      const result = await onSendMessage(trimmed);
+      // If sending failed on server, restore the input text so it is preserved
+      if (result && result.success === false) {
+        setText(previousText);
+      }
+    } catch {
+      setText(previousText);
+    }
+
     if (inputRef.current) {
       inputRef.current.focus();
     }

@@ -1,16 +1,26 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import { messageApi } from "../../services/api";
 import socketService from "../../services/socket";
 import { getInitials, getAvatarColor } from "../../utils/formatters";
-import { MoreVertical, Phone, Video } from "lucide-react";
+import { MoreVertical, Phone, Video, AlertCircle } from "lucide-react";
 
 export default function ChatWindow({ conversation, currentUserId }) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
   const [pagination, setPagination] = useState({ hasMore: false, nextCursor: null });
+
+  const activeConversationIdRef = useRef(conversation?.id);
+  const isSendingRef = useRef(false);
+
+  useEffect(() => {
+    activeConversationIdRef.current = conversation?.id;
+    setSendError(null);
+  }, [conversation?.id]);
 
   const otherUser = conversation?.otherUser;
   const displayName = otherUser?.displayName || otherUser?.username || "Contact";
@@ -120,32 +130,98 @@ export default function ChatWindow({ conversation, currentUserId }) {
     }
   };
 
-  // Send message
+  // Send message via real-time Socket.IO connection
   const handleSendMessage = async (content) => {
-    if (!conversation?.id || !content.trim()) return;
+    const targetConversationId = conversation?.id;
+    const trimmedContent = content?.trim();
 
-    const tempId = "temp-" + Date.now();
+    if (!targetConversationId || !trimmedContent || isSendingRef.current) {
+      return { success: false };
+    }
+
+    // 8. Prevent accidental duplicate sends while send is in progress
+    isSendingRef.current = true;
+    setIsSending(true);
+    setSendError(null);
+
+    const clientTempId = "temp-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
     const optimisticMsg = {
-      id: tempId,
-      conversationId: conversation.id,
+      id: clientTempId,
+      conversationId: targetConversationId,
       senderId: currentUserId,
-      content,
+      content: trimmedContent,
       status: "SENT",
       createdAt: new Date().toISOString()
     };
 
+    // Optimistically display the outgoing message
     setMessages((prev) => [...prev, optimisticMsg]);
 
     try {
-      const res = await messageApi.sendMessage(conversation.id, content);
-      if (res.success && res.data) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? res.data : m))
-        );
+      let persistedMessage = null;
+
+      // 4. Use existing authenticated socket connection
+      if (socketService.isConnected()) {
+        const ack = await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Message send timed out"));
+          }, 10000);
+
+          socketService.emit(
+            "message:send",
+            {
+              conversationId: targetConversationId,
+              content: trimmedContent,
+              tempId: clientTempId
+            },
+            (response) => {
+              clearTimeout(timeout);
+              if (response && response.success) {
+                resolve(response);
+              } else {
+                reject(new Error(response?.error || "Failed to send message"));
+              }
+            }
+          );
+        });
+
+        persistedMessage = ack.data;
+      } else {
+        // Fallback to REST API if socket connection is temporarily unavailable
+        const res = await messageApi.sendMessage(targetConversationId, trimmedContent);
+        if (res && res.success && res.data) {
+          persistedMessage = res.data;
+        } else {
+          throw new Error(res?.error || "Failed to send message");
+        }
       }
+
+      // 5. Update the chat UI with the persisted message returned by the server acknowledgement
+      if (persistedMessage) {
+        // 11. Ensure switching conversations does not cause message to be displayed in wrong conversation
+        if (targetConversationId === activeConversationIdRef.current) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === clientTempId || m.id === persistedMessage.id
+                ? persistedMessage
+                : m
+            )
+          );
+        }
+        return { success: true, data: persistedMessage };
+      }
+
+      return { success: false, error: "No message data returned" };
     } catch (err) {
-      console.error("Failed to send message:", err);
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      console.error("[ChatWindow] Failed to send message:", err.message);
+      setSendError(err.message || "Failed to send message");
+
+      // 7. Handle server errors gracefully: remove optimistic message and signal failure
+      setMessages((prev) => prev.filter((m) => m.id !== clientTempId));
+      return { success: false, error: err.message };
+    } finally {
+      isSendingRef.current = false;
+      setIsSending(false);
     }
   };
 
@@ -202,8 +278,28 @@ export default function ChatWindow({ conversation, currentUserId }) {
         isLoading={isLoading}
       />
 
+      {/* Sending Error Banner */}
+      {sendError && (
+        <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-xs text-red-600 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-1.5">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>{sendError}</span>
+          </div>
+          <button
+            onClick={() => setSendError(null)}
+            className="text-red-500 hover:text-red-800 font-bold ml-2 p-1 cursor-pointer"
+            title="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Message Input Box */}
-      <MessageInput onSendMessage={handleSendMessage} disabled={isLoading} />
+      <MessageInput
+        onSendMessage={handleSendMessage}
+        disabled={isLoading || isSending}
+      />
     </div>
   );
 }
