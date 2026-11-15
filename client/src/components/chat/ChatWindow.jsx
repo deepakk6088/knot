@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import { messageApi } from "../../services/api";
+import socketService from "../../services/socket";
 import { getInitials, getAvatarColor } from "../../utils/formatters";
 import { MoreVertical, Phone, Video } from "lucide-react";
 
@@ -42,6 +43,56 @@ export default function ChatWindow({ conversation, currentUserId }) {
       loadInitialMessages(conversation.id);
     }
   }, [conversation?.id, loadInitialMessages]);
+
+  // Subscribe to real-time incoming messages for the active conversation
+  useEffect(() => {
+    if (!conversation?.id) return;
+
+    // Join the current conversation room
+    socketService.emit("conversation:join", { conversationId: conversation.id });
+
+    const handleMessageReceive = (incomingMsg) => {
+      if (!incomingMsg || !incomingMsg.id) return;
+
+      // Ensure the message belongs strictly to this active conversation
+      if (incomingMsg.conversationId !== conversation.id) {
+        return;
+      }
+
+      setMessages((prevMessages) => {
+        // Prevent duplicate messages
+        const alreadyExists = prevMessages.some(
+          (m) =>
+            m.id === incomingMsg.id ||
+            (m.id.startsWith("temp-") &&
+              m.content === incomingMsg.content &&
+              m.senderId === incomingMsg.senderId)
+        );
+
+        if (alreadyExists) {
+          // If the message replaces an optimistic temporary message, swap it cleanly
+          return prevMessages.map((m) =>
+            m.id === incomingMsg.id ||
+            (m.id.startsWith("temp-") &&
+              m.content === incomingMsg.content &&
+              m.senderId === incomingMsg.senderId)
+              ? incomingMsg
+              : m
+          );
+        }
+
+        // Append the new incoming message
+        return [...prevMessages, incomingMsg];
+      });
+    };
+
+    socketService.on("message:receive", handleMessageReceive);
+
+    return () => {
+      socketService.off("message:receive", handleMessageReceive);
+      socketService.emit("conversation:leave", { conversationId: conversation.id });
+    };
+  }, [conversation?.id]);
 
   // Load previous / older messages
   const handleLoadMore = async () => {
