@@ -16,6 +16,7 @@ import { getInitials } from "../../utils/formatters";
 export default function Sidebar({
   conversations = [],
   selectedConversationId,
+  presenceMap = {},
   onSelectConversation,
   isLoading,
   currentUser,
@@ -124,6 +125,7 @@ export default function Sidebar({
       <ConversationList
         conversations={conversations}
         selectedId={selectedConversationId}
+        presenceMap={presenceMap}
         onSelectConversation={onSelectConversation}
         isLoading={isLoading}
         searchQuery={searchQuery}

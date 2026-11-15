@@ -5,6 +5,7 @@ import { MessageCircle, Loader2 } from "lucide-react";
 export default function ConversationList({
   conversations = [],
   selectedId,
+  presenceMap = {},
   onSelectConversation,
   isLoading,
   searchQuery = ""
@@ -53,6 +54,7 @@ export default function ConversationList({
           isSelected={conv.id === selectedId}
           onSelect={onSelectConversation}
           currentUserId={conv.currentUser?.id}
+          isOnline={Boolean(conv.otherUser?.id && presenceMap[conv.otherUser.id]?.isOnline)}
         />
       ))}
     </div>

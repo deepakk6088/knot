@@ -6,7 +6,8 @@ export default function ConversationItem({
   conversation,
   isSelected,
   onSelect,
-  currentUserId
+  currentUserId,
+  isOnline = false
 }) {
   const { otherUser, lastMessage, updatedAt } = conversation;
   const isOwnLastMessage = lastMessage && lastMessage.senderId === currentUserId;
@@ -23,7 +24,7 @@ export default function ConversationItem({
           : "hover:bg-[#f5f1e8]/80"
       }`}
     >
-      {/* Contact Avatar with Rich Palette */}
+      {/* Contact Avatar with Rich Palette & Presence Indicator */}
       <div className="relative shrink-0">
         {otherUser?.avatarUrl ? (
           <img
@@ -36,6 +37,12 @@ export default function ConversationItem({
             {getInitials(displayName)}
           </div>
         )}
+        <span
+          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#fbf9f5] transition-colors ${
+            isOnline ? "bg-[#4d7c0f]" : "bg-slate-300"
+          }`}
+          title={isOnline ? "Online" : "Offline"}
+        />
       </div>
 
       {/* Details */}

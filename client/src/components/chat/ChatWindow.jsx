@@ -3,10 +3,10 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import { messageApi } from "../../services/api";
 import socketService from "../../services/socket";
-import { getInitials, getAvatarColor } from "../../utils/formatters";
+import { getInitials, getAvatarColor, formatConversationDate } from "../../utils/formatters";
 import { MoreVertical, Phone, Video, AlertCircle } from "lucide-react";
 
-export default function ChatWindow({ conversation, currentUserId }) {
+export default function ChatWindow({ conversation, currentUserId, otherPresence }) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -337,6 +337,8 @@ export default function ChatWindow({ conversation, currentUserId }) {
     }
   };
 
+  const isOtherOnline = Boolean(otherPresence?.isOnline);
+
   return (
     <div className="flex-1 flex flex-col h-full bg-[#f5f3ee] relative overflow-hidden">
       {/* Chat Window Header */}
@@ -354,11 +356,16 @@ export default function ChatWindow({ conversation, currentUserId }) {
                 {getInitials(displayName)}
               </div>
             )}
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#4d7c0f] border-2 border-[#fbf9f5]" />
+            <span
+              className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#fbf9f5] transition-colors ${
+                isOtherOnline ? "bg-[#4d7c0f]" : "bg-slate-300"
+              }`}
+              title={isOtherOnline ? "Online" : "Offline"}
+            />
           </div>
 
           <div>
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2" title={otherUser?.username ? `@${otherUser.username}` : undefined}>
               {displayName}
             </h2>
             <div className="text-xs font-medium">
@@ -371,8 +378,17 @@ export default function ChatWindow({ conversation, currentUserId }) {
                     <span className="w-1 h-1 bg-[#1e3a8a] rounded-full animate-bounce" />
                   </span>
                 </span>
+              ) : isOtherOnline ? (
+                <span className="text-[#4d7c0f] font-semibold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4d7c0f]" />
+                  Online
+                </span>
+              ) : otherPresence?.lastSeenAt ? (
+                <span className="text-slate-500">
+                  Last seen {formatConversationDate(otherPresence.lastSeenAt)}
+                </span>
               ) : (
-                <span className="text-slate-500">@{otherUser?.username || "user"}</span>
+                <span className="text-slate-400">Offline</span>
               )}
             </div>
           </div>
