@@ -10,6 +10,7 @@ import Signup from "./components/auth/Signup";
 import VerifyEmail from "./components/auth/VerifyEmail";
 import { useAuth } from "./context/AuthContext";
 import { conversationApi } from "./services/api";
+import socketService from "./services/socket";
 
 // Fallback demo user profiles for development and pair-testing
 const DEMO_USERS = [
@@ -66,6 +67,48 @@ function ChatLayout({
   useEffect(() => {
     loadConversations();
   }, [loadConversations, currentUser?.id]);
+
+  // Synchronize conversation list and preview state when messages arrive in real time
+  useEffect(() => {
+    const handleIncomingMessageGlobal = (incomingMsg) => {
+      if (!incomingMsg || !incomingMsg.conversationId) return;
+
+      setConversations((prevConvs) => {
+        const targetConv = prevConvs.find((c) => c.id === incomingMsg.conversationId);
+
+        // If a message arrives for a conversation not yet present in list, reload conversations
+        if (!targetConv) {
+          loadConversations();
+          return prevConvs;
+        }
+
+        // Update the conversation's lastMessage and bump it in the conversation list
+        const updatedList = prevConvs.map((conv) => {
+          if (conv.id === incomingMsg.conversationId) {
+            return {
+              ...conv,
+              lastMessage: incomingMsg,
+              updatedAt: incomingMsg.createdAt || new Date().toISOString()
+            };
+          }
+          return conv;
+        });
+
+        // Sort so the conversation with the newest message sits at the top
+        return [...updatedList].sort((a, b) => {
+          const dateA = new Date(a.lastMessage?.createdAt || a.updatedAt || 0);
+          const dateB = new Date(b.lastMessage?.createdAt || b.updatedAt || 0);
+          return dateB - dateA;
+        });
+      });
+    };
+
+    socketService.on("message:receive", handleIncomingMessageGlobal);
+
+    return () => {
+      socketService.off("message:receive", handleIncomingMessageGlobal);
+    };
+  }, [loadConversations]);
 
   const handleConversationCreated = (newConv) => {
     setConversations((prev) => {
