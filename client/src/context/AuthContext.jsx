@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import api from "../services/api";
+import socketService from "../services/socket";
 
 const AuthContext = createContext(null);
 
@@ -32,6 +33,9 @@ export function AuthProvider({ children }) {
 
                 setUser(response.data.user);
                 setToken(storedToken);
+
+                // Establish authenticated socket connection using the restored token
+                socketService.connect(storedToken);
             } catch (error) {
                 const status = error.response?.status;
 
@@ -39,6 +43,7 @@ export function AuthProvider({ children }) {
                     localStorage.removeItem("knot_token");
                     setToken(null);
                     setUser(null);
+                    socketService.disconnect();
                 }
             } finally {
                 setLoading(false);
@@ -48,11 +53,34 @@ export function AuthProvider({ children }) {
         restoreSession();
     }, []);
 
+    // Ensure socket lifecycle remains synchronized with authentication state changes
+    useEffect(() => {
+        if (!loading) {
+            if (token && user) {
+                socketService.connect(token);
+            } else {
+                socketService.disconnect();
+            }
+        }
+    }, [token, user, loading]);
+
+    // Clean up socket on unmount of AuthProvider
+    useEffect(() => {
+        return () => {
+            socketService.disconnect();
+        };
+    }, []);
+
     function setSession(userData, authToken) {
         localStorage.setItem("knot_token", authToken);
 
         setUser(userData);
         setToken(authToken);
+
+        // Connect socket immediately with new valid session token
+        if (authToken) {
+            socketService.connect(authToken);
+        }
     }
 
     function updateUser(updatedUser) {
@@ -63,6 +91,9 @@ export function AuthProvider({ children }) {
     }
 
     function logout() {
+        // Disconnect socket and clean up listeners before clearing local session state
+        socketService.disconnect();
+
         localStorage.removeItem("knot_token");
 
         setUser(null);
@@ -76,7 +107,8 @@ export function AuthProvider({ children }) {
         isAuthenticated: Boolean(token && user),
         setSession,
         updateUser,
-        logout
+        logout,
+        socketService
     };
 
     return (
