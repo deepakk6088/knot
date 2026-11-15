@@ -12,10 +12,17 @@ export default function ChatWindow({ conversation, currentUserId }) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState(null);
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [pagination, setPagination] = useState({ hasMore: false, nextCursor: null });
 
   const activeConversationIdRef = useRef(conversation?.id);
   const isSendingRef = useRef(false);
+  const isTypingRef = useRef(false);
+  const typingTimeoutRef = useRef(null);
+  const otherTypingTimeoutRef = useRef(null);
+
+  const TYPING_IDLE_TIMEOUT_MS = 2500;
+  const OTHER_TYPING_SAFETY_TIMEOUT_MS = 4000;
 
   useEffect(() => {
     activeConversationIdRef.current = conversation?.id;
@@ -104,6 +111,108 @@ export default function ChatWindow({ conversation, currentUserId }) {
     };
   }, [conversation?.id]);
 
+  // Clean up user's own typing emission when switching conversations or unmounting
+  useEffect(() => {
+    return () => {
+      if (isTypingRef.current && activeConversationIdRef.current) {
+        socketService.emit("typing:stop", { conversationId: activeConversationIdRef.current });
+        isTypingRef.current = false;
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+    };
+  }, [conversation?.id]);
+
+  // Handle incoming typing indicator events from the other participant
+  useEffect(() => {
+    if (!conversation?.id) return;
+
+    // Reset typing indicator when switching conversations
+    setIsOtherTyping(false);
+    if (otherTypingTimeoutRef.current) {
+      clearTimeout(otherTypingTimeoutRef.current);
+      otherTypingTimeoutRef.current = null;
+    }
+
+    const handleRemoteTypingStart = (data) => {
+      if (!data || data.conversationId !== conversation.id) return;
+
+      // Do not display current user's own typing status
+      if (data.userId && data.userId === currentUserId) return;
+
+      setIsOtherTyping(true);
+
+      // Safety timeout: auto-clear indicator if no stop event is received
+      if (otherTypingTimeoutRef.current) {
+        clearTimeout(otherTypingTimeoutRef.current);
+      }
+      otherTypingTimeoutRef.current = setTimeout(() => {
+        setIsOtherTyping(false);
+      }, OTHER_TYPING_SAFETY_TIMEOUT_MS);
+    };
+
+    const handleRemoteTypingStop = (data) => {
+      if (!data || data.conversationId !== conversation.id) return;
+
+      if (otherTypingTimeoutRef.current) {
+        clearTimeout(otherTypingTimeoutRef.current);
+        otherTypingTimeoutRef.current = null;
+      }
+      setIsOtherTyping(false);
+    };
+
+    socketService.on("typing:start", handleRemoteTypingStart);
+    socketService.on("typing:stop", handleRemoteTypingStop);
+
+    return () => {
+      socketService.off("typing:start", handleRemoteTypingStart);
+      socketService.off("typing:stop", handleRemoteTypingStop);
+
+      if (otherTypingTimeoutRef.current) {
+        clearTimeout(otherTypingTimeoutRef.current);
+        otherTypingTimeoutRef.current = null;
+      }
+      setIsOtherTyping(false);
+    };
+  }, [conversation?.id, currentUserId]);
+
+  // Emit typing start with idle debounce
+  const emitTypingStart = useCallback(() => {
+    if (!conversation?.id || !socketService.isConnected()) return;
+
+    // Prevent repeated unnecessary typing-start emissions
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      socketService.emit("typing:start", { conversationId: conversation.id });
+    }
+
+    // Reset idle timeout on each keystroke
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      emitTypingStop();
+    }, TYPING_IDLE_TIMEOUT_MS);
+  }, [conversation?.id]);
+
+  // Emit typing stop immediately
+  const emitTypingStop = useCallback(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    if (isTypingRef.current && conversation?.id && socketService.isConnected()) {
+      isTypingRef.current = false;
+      socketService.emit("typing:stop", { conversationId: conversation.id });
+    } else {
+      isTypingRef.current = false;
+    }
+  }, [conversation?.id]);
+
   // Load previous / older messages
   const handleLoadMore = async () => {
     if (!pagination.hasMore || isLoadingMore || !conversation?.id) return;
@@ -138,6 +247,9 @@ export default function ChatWindow({ conversation, currentUserId }) {
     if (!targetConversationId || !trimmedContent || isSendingRef.current) {
       return { success: false };
     }
+
+    // Immediately stop typing indicator when sending a message
+    emitTypingStop();
 
     // 8. Prevent accidental duplicate sends while send is in progress
     isSendingRef.current = true;
@@ -249,9 +361,20 @@ export default function ChatWindow({ conversation, currentUserId }) {
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               {displayName}
             </h2>
-            <p className="text-xs text-slate-500 font-medium">
-              @{otherUser?.username || "user"}
-            </p>
+            <div className="text-xs font-medium">
+              {isOtherTyping ? (
+                <span className="text-[#1e3a8a] font-semibold flex items-center gap-1 animate-pulse">
+                  <span>typing</span>
+                  <span className="inline-flex gap-0.5">
+                    <span className="w-1 h-1 bg-[#1e3a8a] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1 h-1 bg-[#1e3a8a] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1 h-1 bg-[#1e3a8a] rounded-full animate-bounce" />
+                  </span>
+                </span>
+              ) : (
+                <span className="text-slate-500">@{otherUser?.username || "user"}</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -295,9 +418,26 @@ export default function ChatWindow({ conversation, currentUserId }) {
         </div>
       )}
 
+      {/* Typing Indicator Bubble */}
+      {isOtherTyping && (
+        <div className="px-6 py-1.5 flex items-center gap-2 text-xs text-slate-500 select-none shrink-0">
+          <div className="flex items-center gap-1.5 bg-[#fbf9f5] px-3.5 py-1.5 rounded-2xl border border-[#ded8cb] shadow-2xs">
+            <span className="font-semibold text-slate-800">{displayName}</span>
+            <span>is typing</span>
+            <span className="inline-flex items-center gap-0.5 ml-0.5">
+              <span className="w-1.5 h-1.5 bg-[#1e3a8a] rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-1.5 h-1.5 bg-[#1e3a8a] rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-1.5 h-1.5 bg-[#1e3a8a] rounded-full animate-bounce" />
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Message Input Box */}
       <MessageInput
         onSendMessage={handleSendMessage}
+        onTypingStart={emitTypingStart}
+        onTypingStop={emitTypingStop}
         disabled={isLoading || isSending}
       />
     </div>
