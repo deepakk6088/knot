@@ -42,6 +42,7 @@ function ChatLayout({
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeView, setActiveView] = useState("chat");
+  const [presenceMap, setPresenceMap] = useState({});
 
   const loadConversations = useCallback(async () => {
     setIsLoading(true);
@@ -67,6 +68,119 @@ function ChatLayout({
   useEffect(() => {
     loadConversations();
   }, [loadConversations, currentUser?.id]);
+
+  // Manage online/offline presence for contacts across conversations
+  useEffect(() => {
+    const handlePresenceOnline = (data) => {
+      const userId = data?.userId;
+      if (!userId) return;
+
+      setPresenceMap((prev) => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          isOnline: true,
+          lastSeenAt: null
+        }
+      }));
+    };
+
+    const handlePresenceOffline = (data) => {
+      const userId = data?.userId;
+      if (!userId) return;
+
+      setPresenceMap((prev) => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          isOnline: false,
+          lastSeenAt: data.lastSeenAt || new Date().toISOString()
+        }
+      }));
+    };
+
+    const handlePresenceStatus = (data) => {
+      if (!data) return;
+
+      if (data.statuses && typeof data.statuses === "object") {
+        setPresenceMap((prev) => ({
+          ...prev,
+          ...data.statuses
+        }));
+      } else if (Array.isArray(data.onlineUserIds)) {
+        setPresenceMap((prev) => {
+          const next = { ...prev };
+          for (const uid of data.onlineUserIds) {
+            next[uid] = { ...next[uid], isOnline: true };
+          }
+          return next;
+        });
+      }
+    };
+
+    socketService.on("presence:online", handlePresenceOnline);
+    socketService.on("presence:offline", handlePresenceOffline);
+    socketService.on("presence:status", handlePresenceStatus);
+
+    return () => {
+      socketService.off("presence:online", handlePresenceOnline);
+      socketService.off("presence:offline", handlePresenceOffline);
+      socketService.off("presence:status", handlePresenceStatus);
+    };
+  }, []);
+
+  // Request initial presence status when conversations are loaded or updated
+  useEffect(() => {
+    if (!conversations || conversations.length === 0) return;
+
+    const contactIds = Array.from(
+      new Set(
+        conversations
+          .map((c) => c.otherUser?.id)
+          .filter(Boolean)
+      )
+    );
+
+    if (contactIds.length === 0) return;
+
+    const queryPresence = () => {
+      if (socketService.isConnected()) {
+        socketService.emit("presence:get", { userIds: contactIds }, (res) => {
+          if (res && res.success && res.statuses) {
+            setPresenceMap((prev) => ({
+              ...prev,
+              ...res.statuses
+            }));
+          }
+        });
+      }
+    };
+
+    queryPresence();
+
+    socketService.on("connect", queryPresence);
+
+    return () => {
+      socketService.off("connect", queryPresence);
+    };
+  }, [conversations]);
+
+  // Refresh presence status when selected conversation changes
+  useEffect(() => {
+    const contactId = selectedConversation?.otherUser?.id;
+    if (!contactId) return;
+
+    if (socketService.isConnected()) {
+      socketService.emit("presence:get", { userIds: [contactId] }, (res) => {
+        if (res && res.success && res.statuses) {
+          setPresenceMap((prev) => ({
+            ...prev,
+            ...res.statuses
+          }));
+        }
+      });
+    }
+  }, [selectedConversation?.id, selectedConversation?.otherUser?.id]);
 
   // Synchronize conversation list and preview state when messages arrive in real time
   useEffect(() => {
@@ -132,6 +246,7 @@ function ChatLayout({
       <Sidebar
         conversations={conversations}
         selectedConversationId={selectedConversation?.id}
+        presenceMap={presenceMap}
         onSelectConversation={(conversation) => {
           setSelectedConversation(conversation);
           setActiveView("chat");
@@ -160,6 +275,11 @@ function ChatLayout({
           key={selectedConversation.id}
           conversation={selectedConversation}
           currentUserId={currentUser?.id}
+          otherPresence={
+            selectedConversation.otherUser?.id
+              ? presenceMap[selectedConversation.otherUser.id]
+              : null
+          }
         />
       ) : (
         <EmptyChatState />
