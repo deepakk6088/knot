@@ -204,3 +204,86 @@ npm run dev
 ```
 
 The Electron desktop window should open if the development scripts are configured correctly.
+
+## Real-Time Communication
+
+KNOT uses Socket.IO to enable bidirectional communication between connected users.
+
+The real-time communication layer includes:
+
+- Authenticated socket connections.
+- Conversation-based communication rooms.
+- Instant message sending and receiving.
+- Online/offline presence updates.
+- Typing start and stop events.
+- Message delivery and read receipts.
+- Reconnection and connection lifecycle management.
+
+Socket connections use JWT-based authentication to associate communication events with authenticated users.
+
+## Message Status Lifecycle
+
+KNOT supports three message statuses:
+
+| Status | Description |
+|---|---|
+| SENT | Message successfully persisted by the server. |
+| DELIVERED | Message delivered to the recipient. |
+| READ | Recipient has read the message. |
+
+```text
+SENT
+  │
+  ▼
+DELIVERED
+  │
+  ▼
+READ
+```
+
+## Development Roadmap
+
+KNOT is organized into six major development phases:
+
+| Phase | Focus Area |
+|---|---|
+| Phase 1 | Requirements and System Planning |
+| Phase 2 | Database Design and Backend Foundation |
+| Phase 3 | Authentication and Conversation Management |
+| Phase 4 | Real-Time Communication Using Socket.IO |
+| Phase 5 | Message Delivery and Receipt Management |
+| Phase 6 | Frontend Development and Real-Time Integration |
+
+Each phase is divided into smaller development tasks to support modular implementation and maintainable version control.
+
+## Future Enhancements
+
+Potential improvements for future versions include:
+
+- Group conversations.
+- Image and file sharing.
+- Message editing and deletion.
+- User profile customization.
+- Push notifications.
+- Message search.
+- End-to-end encryption.
+
+These are potential future enhancements and are not necessarily part of the current implementation.
+
+## Contributors
+
+KNOT is developed collaboratively as an academic major project.
+
+The project involves collaborative contributions across application architecture, frontend development, backend development, database management and real-time communication.
+
+## License
+
+This project is developed for academic and educational purposes.
+
+A formal open-source license can be added once the project team decides its distribution terms.
+
+---
+
+<p align="center">
+  <strong>KNOT – Stay Connected. Stay in Sync.</strong>
+</p>
