@@ -1,16 +1,53 @@
-# React + Vite
+# KNOT – Real-Time Text Messaging Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<p align="center">
+  <strong>Connecting people, one message at a time.</strong>
+</p>
 
-Currently, two official plugins are available:
+<p align="center">
+  A lightweight real-time messaging application built with React, Electron, Node.js, Express, Socket.IO and PostgreSQL.
+</p>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## About KNOT
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+KNOT is a real-time text messaging application designed to help registered users connect and communicate through a simple and responsive messaging experience.
 
-## Expanding the ESLint configuration
+The name **KNOT** represents the connection between people. Just as a knot brings separate strands together, KNOT brings users together through real-time communication.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The project focuses on essential messaging functionality, including secure authentication, conversation management, persistent message storage and real-time communication.
+
+KNOT is developed as a modular desktop application using React and Electron, supported by a Node.js backend.
+
+## Key Features
+
+- **User Authentication:** Secure registration and login using JWT authentication.
+- **Conversation Management:** Create and manage conversations between registered users.
+- **Real-Time Messaging:** Send and receive messages instantly using Socket.IO.
+- **Persistent Storage:** Store messages and conversation data in PostgreSQL.
+- **Online/Offline Presence:** Track users' connection status.
+- **Typing Indicators:** Know when another participant is typing.
+- **Message Receipts:** Track SENT, DELIVERED and READ message statuses.
+- **Socket Reconnection:** Handle connection interruptions and restore communication.
+- **Desktop Application:** Access KNOT through an Electron-based desktop interface.
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React.js, Vite |
+| Desktop Framework | Electron |
+| Styling | Tailwind CSS |
+| Backend | Node.js, Express.js |
+| Real-Time Communication | Socket.IO |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| Authentication | JWT, bcryptjs |
+| Version Control | Git, GitHub |
+
+---
+
+<p align="center">
+  <strong>KNOT – Stay Connected. Stay in Sync.</strong>
+</p>
