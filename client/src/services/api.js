@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
@@ -37,6 +36,14 @@ export const userApi = {
       params: { q: query }
     });
 
+    return res.data;
+  }
+};
+
+// Profile APIs (Member 1)
+export const profileApi = {
+  updateProfile: async (profileData) => {
+    const res = await api.patch("/users/me", profileData);
     return res.data;
   }
 };

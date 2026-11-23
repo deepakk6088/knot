@@ -1,14 +1,16 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/chat/Sidebar";
 import ChatWindow from "./components/chat/ChatWindow";
 import EmptyChatState from "./components/chat/EmptyChatState";
+import ProfilePage from "./components/pages/ProfilePage";
+import SettingsPage from "./components/pages/SettingsPage";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import VerifyEmail from "./components/auth/VerifyEmail";
 import { useAuth } from "./context/AuthContext";
 import { conversationApi } from "./services/api";
+import socketService from "./services/socket";
 
 // Fallback demo user profiles for development and pair-testing
 const DEMO_USERS = [
@@ -29,17 +31,28 @@ const DEMO_USERS = [
   }
 ];
 
-function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
+function ChatLayout({
+  currentUser,
+  onSwitchUser,
+  onLogout,
+  onProfileUpdated,
+  isDevMode
+}) {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeView, setActiveView] = useState("chat");
+  const [presenceMap, setPresenceMap] = useState({});
 
   const loadConversations = useCallback(async () => {
     setIsLoading(true);
+
     try {
       const res = await conversationApi.getConversations();
+
       if (res.success) {
         setConversations(res.data);
+
         setSelectedConversation((prev) => {
           if (!prev) return null;
           return res.data.find((c) => c.id === prev.id) || prev;
@@ -56,15 +69,176 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
     loadConversations();
   }, [loadConversations, currentUser?.id]);
 
+  // Manage online/offline presence for contacts across conversations
+  useEffect(() => {
+    const handlePresenceOnline = (data) => {
+      const userId = data?.userId;
+      if (!userId) return;
+
+      setPresenceMap((prev) => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          isOnline: true,
+          lastSeenAt: null
+        }
+      }));
+    };
+
+    const handlePresenceOffline = (data) => {
+      const userId = data?.userId;
+      if (!userId) return;
+
+      setPresenceMap((prev) => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          isOnline: false,
+          lastSeenAt: data.lastSeenAt || new Date().toISOString()
+        }
+      }));
+    };
+
+    const handlePresenceStatus = (data) => {
+      if (!data) return;
+
+      if (data.statuses && typeof data.statuses === "object") {
+        setPresenceMap((prev) => ({
+          ...prev,
+          ...data.statuses
+        }));
+      } else if (Array.isArray(data.onlineUserIds)) {
+        setPresenceMap((prev) => {
+          const next = { ...prev };
+          for (const uid of data.onlineUserIds) {
+            next[uid] = { ...next[uid], isOnline: true };
+          }
+          return next;
+        });
+      }
+    };
+
+    socketService.on("presence:online", handlePresenceOnline);
+    socketService.on("presence:offline", handlePresenceOffline);
+    socketService.on("presence:status", handlePresenceStatus);
+
+    return () => {
+      socketService.off("presence:online", handlePresenceOnline);
+      socketService.off("presence:offline", handlePresenceOffline);
+      socketService.off("presence:status", handlePresenceStatus);
+    };
+  }, []);
+
+  // Request initial presence status when conversations are loaded or updated
+  useEffect(() => {
+    if (!conversations || conversations.length === 0) return;
+
+    const contactIds = Array.from(
+      new Set(
+        conversations
+          .map((c) => c.otherUser?.id)
+          .filter(Boolean)
+      )
+    );
+
+    if (contactIds.length === 0) return;
+
+    const queryPresence = () => {
+      if (socketService.isConnected()) {
+        socketService.emit("presence:get", { userIds: contactIds }, (res) => {
+          if (res && res.success && res.statuses) {
+            setPresenceMap((prev) => ({
+              ...prev,
+              ...res.statuses
+            }));
+          }
+        });
+      }
+    };
+
+    queryPresence();
+
+    socketService.on("connect", queryPresence);
+
+    return () => {
+      socketService.off("connect", queryPresence);
+    };
+  }, [conversations]);
+
+  // Refresh presence status when selected conversation changes
+  useEffect(() => {
+    const contactId = selectedConversation?.otherUser?.id;
+    if (!contactId) return;
+
+    if (socketService.isConnected()) {
+      socketService.emit("presence:get", { userIds: [contactId] }, (res) => {
+        if (res && res.success && res.statuses) {
+          setPresenceMap((prev) => ({
+            ...prev,
+            ...res.statuses
+          }));
+        }
+      });
+    }
+  }, [selectedConversation?.id, selectedConversation?.otherUser?.id]);
+
+  // Synchronize conversation list and preview state when messages arrive in real time
+  useEffect(() => {
+    const handleIncomingMessageGlobal = (incomingMsg) => {
+      if (!incomingMsg || !incomingMsg.conversationId) return;
+
+      setConversations((prevConvs) => {
+        const targetConv = prevConvs.find((c) => c.id === incomingMsg.conversationId);
+
+        // If a message arrives for a conversation not yet present in list, reload conversations
+        if (!targetConv) {
+          loadConversations();
+          return prevConvs;
+        }
+
+        // Update the conversation's lastMessage and bump it in the conversation list
+        const updatedList = prevConvs.map((conv) => {
+          if (conv.id === incomingMsg.conversationId) {
+            return {
+              ...conv,
+              lastMessage: incomingMsg,
+              updatedAt: incomingMsg.createdAt || new Date().toISOString()
+            };
+          }
+          return conv;
+        });
+
+        // Sort so the conversation with the newest message sits at the top
+        return [...updatedList].sort((a, b) => {
+          const dateA = new Date(a.lastMessage?.createdAt || a.updatedAt || 0);
+          const dateB = new Date(b.lastMessage?.createdAt || b.updatedAt || 0);
+          return dateB - dateA;
+        });
+      });
+    };
+
+    socketService.on("message:receive", handleIncomingMessageGlobal);
+
+    return () => {
+      socketService.off("message:receive", handleIncomingMessageGlobal);
+    };
+  }, [loadConversations]);
+
   const handleConversationCreated = (newConv) => {
     setConversations((prev) => {
       const exists = prev.some((c) => c.id === newConv.id);
+
       if (exists) {
-        return prev.map((c) => (c.id === newConv.id ? newConv : c));
+        return prev.map((c) =>
+          c.id === newConv.id ? newConv : c
+        );
       }
+
       return [newConv, ...prev];
     });
+
     setSelectedConversation(newConv);
+    setActiveView("chat");
   };
 
   return (
@@ -72,21 +246,40 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
       <Sidebar
         conversations={conversations}
         selectedConversationId={selectedConversation?.id}
-        onSelectConversation={setSelectedConversation}
+        presenceMap={presenceMap}
+        onSelectConversation={(conversation) => {
+          setSelectedConversation(conversation);
+          setActiveView("chat");
+        }}
         isLoading={isLoading}
         currentUser={currentUser}
         onRefresh={loadConversations}
         onConversationCreated={handleConversationCreated}
         onSwitchUser={onSwitchUser}
         onLogout={onLogout}
+        onOpenProfile={() => setActiveView("profile")}
+        onOpenSettings={() => setActiveView("settings")}
         isDevMode={isDevMode}
       />
 
-      {selectedConversation ? (
+      {activeView === "profile" ? (
+        <ProfilePage
+          currentUser={currentUser}
+          onProfileUpdated={onProfileUpdated}
+          onBack={() => setActiveView("chat")}
+        />
+      ) : activeView === "settings" ? (
+        <SettingsPage onBack={() => setActiveView("chat")} />
+      ) : selectedConversation ? (
         <ChatWindow
           key={selectedConversation.id}
           conversation={selectedConversation}
           currentUserId={currentUser?.id}
+          otherPresence={
+            selectedConversation.otherUser?.id
+              ? presenceMap[selectedConversation.otherUser.id]
+              : null
+          }
         />
       ) : (
         <EmptyChatState />
@@ -96,14 +289,23 @@ function ChatLayout({ currentUser, onSwitchUser, onLogout, isDevMode }) {
 }
 
 export default function App() {
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    loading,
+    logout,
+    updateUser
+  } = useAuth();
+
   const [devMode, setDevMode] = useState(
     () => localStorage.getItem("knot_dev_mode") === "true"
   );
 
   const [currentUser, setCurrentUser] = useState(() => {
     if (user?.id) return user;
+
     const savedId = localStorage.getItem("knot_user_id");
+
     return DEMO_USERS.find((u) => u.id === savedId) || DEMO_USERS[0];
   });
 
@@ -120,17 +322,33 @@ export default function App() {
     }
   }, [currentUser, isAuthenticated]);
 
+  // Update the displayed user after a profile save.
+  // This also supports development/demo mode.
+  const handleProfileUpdated = (updatedUser) => {
+    setCurrentUser((previousUser) => ({
+      ...previousUser,
+      ...updatedUser
+    }));
+
+    if (isAuthenticated) {
+      updateUser(updatedUser);
+    }
+  };
+
   const handleSwitchUser = () => {
     if (isAuthenticated) {
       logout();
       return;
     }
+
     const currentIndex = DEMO_USERS.findIndex(
       (u) => u.id === currentUser?.id
     );
+
     const nextUser = DEMO_USERS[
       (currentIndex + 1) % DEMO_USERS.length
     ];
+
     setCurrentUser(nextUser);
   };
 
@@ -169,6 +387,7 @@ export default function App() {
             ) : (
               <div className="relative">
                 <Login />
+
                 <div className="fixed bottom-4 right-4 z-50">
                   <button
                     onClick={() => {
@@ -212,6 +431,7 @@ export default function App() {
                 currentUser={currentUser}
                 onSwitchUser={handleSwitchUser}
                 onLogout={handleLogout}
+                onProfileUpdated={handleProfileUpdated}
                 isDevMode={devMode && !isAuthenticated}
               />
             ) : (

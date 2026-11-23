@@ -1,11 +1,10 @@
-
 function validateProfileUpdate(req, res, next) {
     const { displayName, bio, avatarUrl } = req.body;
 
+    // Reject fields that users are not allowed to update.
     const allowedFields = ["displayName", "bio", "avatarUrl"];
     const receivedFields = Object.keys(req.body);
 
-    // Reject fields that users are not allowed to update.
     const invalidFields = receivedFields.filter(
         field => !allowedFields.includes(field)
     );
@@ -63,26 +62,50 @@ function validateProfileUpdate(req, res, next) {
         }
     }
 
-    // Validate avatarUrl.
+    // Validate avatar URL or base64 image.
     if (avatarUrl !== undefined && avatarUrl !== null) {
         if (typeof avatarUrl !== "string") {
             return res.status(400).json({
                 success: false,
-                message: "Avatar URL must be a string or null."
+                message: "Avatar must be an image URL or image file."
             });
         }
 
-        try {
-            const parsedUrl = new URL(avatarUrl);
+        const trimmedAvatar = avatarUrl.trim();
+        req.body.avatarUrl = trimmedAvatar;
 
-            if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-                throw new Error("Invalid protocol");
+        if (trimmedAvatar.length === 0) {
+            req.body.avatarUrl = null;
+        } else if (trimmedAvatar.startsWith("data:")) {
+            const validImageDataUrl =
+                /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/i;
+
+            if (!validImageDataUrl.test(trimmedAvatar)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please provide a valid JPEG, PNG, WebP, or GIF image."
+                });
             }
-        } catch {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid HTTP or HTTPS avatar URL."
-            });
+
+            if (trimmedAvatar.length > 7 * 1024 * 1024) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Avatar image is too large. Maximum size is 5 MB."
+                });
+            }
+        } else {
+            try {
+                const parsedUrl = new URL(trimmedAvatar);
+
+                if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+                    throw new Error("Invalid protocol");
+                }
+            } catch {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please provide a valid HTTP or HTTPS image URL."
+                });
+            }
         }
     }
 

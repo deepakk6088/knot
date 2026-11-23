@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { SendHorizonal } from "lucide-react";
 
-export default function MessageInput({ onSendMessage, disabled }) {
+export default function MessageInput({
+  onSendMessage,
+  onTypingStart,
+  onTypingStop,
+  disabled
+}) {
   const [text, setText] = useState("");
   const inputRef = useRef(null);
 
@@ -11,6 +16,13 @@ export default function MessageInput({ onSendMessage, disabled }) {
     }
   }, [disabled]);
 
+  // Clean up typing indicator on unmount
+  useEffect(() => {
+    return () => {
+      onTypingStop?.();
+    };
+  }, [onTypingStop]);
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -18,13 +30,38 @@ export default function MessageInput({ onSendMessage, disabled }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setText(val);
+
+    if (val.trim().length > 0) {
+      onTypingStart?.();
+    } else {
+      onTypingStop?.();
+    }
+  };
+
+  const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
 
-    onSendMessage(trimmed);
+    // Immediately stop typing indicator when sending
+    onTypingStop?.();
+
+    const previousText = trimmed;
     setText("");
+
+    try {
+      const result = await onSendMessage(trimmed);
+      // If sending failed on server, restore the input text so it is preserved
+      if (result && result.success === false) {
+        setText(previousText);
+      }
+    } catch {
+      setText(previousText);
+    }
+
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -41,7 +78,7 @@ export default function MessageInput({ onSendMessage, disabled }) {
         placeholder={disabled ? "Select a conversation to start typing..." : "Type a message..."}
         value={text}
         disabled={disabled}
-        onChange={(e) => setText(e.target.value)}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
         className="flex-1 bg-[#ffffff] border border-[#ded8cb] focus:border-[#1e3a8a] focus:ring-4 focus:ring-[#bfd0f0] text-slate-900 placeholder-slate-400 text-sm rounded-2xl px-4 py-3 transition-all disabled:opacity-50 outline-none shadow-2xs"
       />

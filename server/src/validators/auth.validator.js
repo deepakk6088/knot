@@ -1,4 +1,3 @@
-
 function validateRegistration(req, res, next) {
     const { username, email, password, displayName } = req.body || {};
     const errors = {};

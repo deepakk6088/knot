@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { canTransition, isValidUUID } = require("../socket/reciepts");
 
 const VALID_STATUSES = ["SENT", "DELIVERED", "READ"];
 
@@ -136,6 +137,12 @@ async function updateMessageStatus({ messageId, userId, status }) {
     throw new Error(`Invalid message status: ${status}. Must be one of ${VALID_STATUSES.join(", ")}`);
   }
 
+  if (!messageId || !isValidUUID(messageId)) {
+    const error = new Error("Invalid messageId: must be a valid UUID");
+    error.statusCode = 400;
+    throw error;
+  }
+
   const message = await prisma.message.findUnique({
     where: { id: messageId },
     include: { conversation: true }
@@ -150,6 +157,19 @@ async function updateMessageStatus({ messageId, userId, status }) {
   if (message.conversation.userOneId !== userId && message.conversation.userTwoId !== userId) {
     const error = new Error("Access denied: You are not a participant in this conversation");
     error.statusCode = 403;
+    throw error;
+  }
+
+  // Idempotency check: if the message is already at the target status,
+  // return existing record without executing an unnecessary DB update.
+  if (message.status === status) {
+    return message;
+  }
+
+  // Enforce lifecycle: SENT → DELIVERED → READ. Status cannot move backwards.
+  if (!canTransition(message.status, status)) {
+    const error = new Error(`Invalid status transition: Cannot transition message from ${message.status} to ${status}`);
+    error.statusCode = 400;
     throw error;
   }
 
@@ -178,8 +198,83 @@ async function updateMessageStatus({ messageId, userId, status }) {
   return updated;
 }
 
+// Mark all incoming SENT messages in a conversation as DELIVERED.
+// Used when the recipient reconnects and joins the conversation room —
+// any message that was persisted while they were offline moves from
+// SENT → DELIVERED.  Messages already DELIVERED or READ are untouched.
+// Returns the updated rows so the caller can notify each original sender.
+async function markConversationAsDelivered({ conversationId, recipientId }) {
+  if (!conversationId || !isValidUUID(conversationId)) {
+    const error = new Error("Invalid conversationId: must be a valid UUID");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: conversationId }
+  });
+
+  if (!conversation) {
+    const error = new Error("Conversation not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (conversation.userOneId !== recipientId && conversation.userTwoId !== recipientId) {
+    const error = new Error("Access denied: You are not a participant in this conversation");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const now = new Date();
+
+  // Atomic batch update: only SENT messages addressed to the recipient
+  const updateResult = await prisma.message.updateMany({
+    where: {
+      conversationId,
+      senderId: { not: recipientId },  // only messages sent BY the other participant
+      status: "SENT"                   // lifecycle guard: never move backwards
+    },
+    data: {
+      status: "DELIVERED",
+      deliveredAt: now
+    }
+  });
+
+  // Short-circuit: if no messages were updated, return empty list without findMany
+  if (updateResult.count === 0) {
+    return [];
+  }
+
+  // Fetch the rows we just updated so the socket layer can notify senders.
+  // We select only the fields needed for receipt payloads.
+  const deliveredMessages = await prisma.message.findMany({
+    where: {
+      conversationId,
+      senderId: { not: recipientId },
+      status: "DELIVERED",
+      deliveredAt: now              // matches rows updated in this exact call
+    },
+    select: {
+      id: true,
+      conversationId: true,
+      senderId: true,
+      status: true,
+      deliveredAt: true
+    }
+  });
+
+  return deliveredMessages;
+}
+
 // Mark all incoming messages in a conversation as READ
 async function markConversationAsRead({ conversationId, userId }) {
+  if (!conversationId || !isValidUUID(conversationId)) {
+    const error = new Error("Invalid conversationId: must be a valid UUID");
+    error.statusCode = 400;
+    throw error;
+  }
+
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId }
   });
@@ -217,5 +312,6 @@ module.exports = {
   createMessage,
   getConversationMessages,
   updateMessageStatus,
+  markConversationAsDelivered,
   markConversationAsRead
 };

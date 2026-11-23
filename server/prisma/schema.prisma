@@ -1,12 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -22,25 +16,23 @@ enum MessageStatus {
 }
 
 model User {
-  id             String    @id @default(uuid()) @db.Uuid
-  username       String    @unique @db.VarChar(30)
-  email          String    @unique @db.VarChar(255)
-  passwordHash   String
-  displayName    String?   @db.VarChar(60)
-  bio            String?   @db.VarChar(160)
-  avatarUrl      String?
-  lastSeenAt     DateTime? @db.Timestamptz(3)
+  id              String             @id @default(uuid()) @db.Uuid
+  username        String             @unique @db.VarChar(30)
+  email           String             @unique @db.VarChar(255)
+  passwordHash    String
+  displayName     String?            @db.VarChar(60)
+  bio             String?            @db.VarChar(160)
+  avatarUrl       String?
+  lastSeenAt      DateTime?          @db.Timestamptz(3)
+  emailVerifiedAt DateTime?          @db.Timestamptz(3)
 
-  emailVerifiedAt DateTime? @db.Timestamptz(3)
-
-  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt      DateTime  @updatedAt @db.Timestamptz(3)
+  createdAt       DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(3)
 
   emailVerification      EmailVerification?
-
-  conversationsAsUserOne Conversation[] @relation("ConversationUserOne")
-  conversationsAsUserTwo Conversation[] @relation("ConversationUserTwo")
-  sentMessages           Message[]      @relation("MessageSender")
+  conversationsAsUserOne Conversation[]     @relation("ConversationUserOne")
+  conversationsAsUserTwo Conversation[]     @relation("ConversationUserTwo")
+  sentMessages           Message[]          @relation("MessageSender")
 
   @@index([displayName])
 }
@@ -65,9 +57,8 @@ model Conversation {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  userOne User @relation("ConversationUserOne", fields: [userOneId], references: [id], onDelete: Cascade)
-  userTwo User @relation("ConversationUserTwo", fields: [userTwoId], references: [id], onDelete: Cascade)
-
+  userOne User      @relation("ConversationUserOne", fields: [userOneId], references: [id], onDelete: Cascade)
+  userTwo User      @relation("ConversationUserTwo", fields: [userTwoId], references: [id], onDelete: Cascade)
   messages Message[]
 
   @@unique([userOneId, userTwoId])
