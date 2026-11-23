@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   X,
@@ -5,8 +6,7 @@ import {
   Loader2,
   AlertCircle,
   Search,
-  Check,
-  UserRound
+  Check
 } from "lucide-react";
 import { conversationApi, userApi } from "../../services/api";
 import { getAvatarColor, getInitials } from "../../utils/formatters";
@@ -30,16 +30,26 @@ export default function NewChatModal({
     event.preventDefault();
 
     const trimmedQuery = searchQuery.trim();
+
     if (!trimmedQuery) return;
 
     setIsSearching(true);
     setError("");
     setSelectedUser(null);
-    setHasSearched(true);
+    setHasSearched(false);
+    setSearchResults([]);
 
     try {
-      const response = await userApi.searchUsers(trimmedQuery);
-      setSearchResults(response || []);
+      const res = await userApi.searchUsers(trimmedQuery);
+
+      if (res.success) {
+        setSearchResults(
+          Array.isArray(res.users) ? res.users : []
+        );
+        setHasSearched(true);
+      } else {
+        setError(res.message || "Unable to search users.");
+      }
     } catch (err) {
       setError(
         err.response?.data?.message ||
