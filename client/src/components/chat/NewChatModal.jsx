@@ -54,6 +54,7 @@ export default function NewChatModal({
     setHasSearched(false);
 
     try {
+<<<<<<< HEAD
       const res = await userApi.searchUsers(trimmedQuery);
 
       if (res.success) {
@@ -62,6 +63,12 @@ export default function NewChatModal({
       } else {
         setError(res.message || "Unable to search users.");
       }
+=======
+      const response = await userApi.searchUsers(trimmedQuery);
+      setSearchResults(
+        Array.isArray(response?.users) ? response.users : []
+      );
+>>>>>>> 3f01a14 (Fix new chat user search)
     } catch (err) {
       setError(
         err.response?.data?.message ||
