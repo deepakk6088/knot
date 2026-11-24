@@ -54,9 +54,9 @@ app.use((err, req, res, next) => {
 
   const statusCode = err.statusCode || err.status || 500;
 
-  let message = statusCode === 500
+  let message = (process.env.NODE_ENV === "production" && statusCode === 500)
     ? "Internal server error."
-    : err.message;
+    : (err.message || "Internal server error.");
 
   if (err.type === "entity.too.large") {
     message = "Request is too large. Please use an image smaller than 5 MB.";
